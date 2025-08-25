@@ -54,7 +54,7 @@ static int MEMB(init)(Self* vec, size_t cap){
     vec->data = NULL;
     vec->cap = 0;
     vec->siz = 0;
-    return MEMB(reserve)(vec, cap);
+    return MEMB(reserve)(vec, cap ? cap : 1);
 }
 static void MEMB(free)(Self* vec){
     free(vec->data);
@@ -85,7 +85,7 @@ static bool MEMB(empty)(Self* vec){
 
 static int MEMB(reserve)(Self* vec, size_t cap){
     if (cap <= vec->cap) return 0;
-    VAL_TYPE* tmp = (VAL_TYPE*)malloc(sizeof(VAL_TYPE)*cap);
+    VAL_TYPE* tmp = (VAL_TYPE*)realloc(vec->data, sizeof(VAL_TYPE)*cap);
     if (!tmp){
         errno = ENOMEM;
         return -1;
