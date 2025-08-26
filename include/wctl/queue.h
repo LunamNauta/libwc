@@ -16,62 +16,8 @@
 /* Sanity Checks ---------------------------------------------------------------------------*/
 
 #ifndef T
-    #ifdef WCTL_DECLARE_BUILTINS
-        /* Builtin Declarations ---------------------------------------------------------------------------*/
-        #undef WCTL_DECLARE_BUILTINS
-        #ifndef WCTL_QUEUE_BUILTINS_DECLARED
-            #define WCTL_QUEUE_BUILTINS_DECLARED
-
-            #undef T
-            #define T wcqueue_bool, bool
-            #include "queue.h"
-
-            #undef T
-            #define T wcqueue_char, signed char
-            #include "queue.h"
-            #undef T
-            #define T wcqueue_uchar, unsigned char
-            #include "queue.h"
-
-            #undef T
-            #define T wcqueue_int, signed int
-            #include "queue.h"
-            #undef T
-            #define T wcqueue_uint, unsigned int
-            #include "queue.h"
-
-            #undef T
-            #define T wcqueue_short, signed short
-            #include "queue.h"
-            #undef T
-            #define T wcqueue_ushort, unsigned short
-            #include "queue.h"
-
-            #undef T
-            #define T wcqueue_long, signed long
-            #include "queue.h"
-            #undef T
-            #define T wcqueue_ulong, unsigned long
-            #include "queue.h"
-
-            #undef T
-            #define T wcqueue_llong, signed long long
-            #include "queue.h"
-            #undef T
-            #define T wcqueue_ullong, unsigned long long
-            #include "queue.h"
-
-            #undef T
-            #define T wcqueue_float, float
-            #include "queue.h"
-            #undef T
-            #define T wcqueue_double, double
-            #include "queue.h"
-        #endif
-    #else
-        #error "Error: Template not provided for queue"
-    #endif
-#else // #ifdef T
+    #error "Error: Template not provided for queue"
+#endif
 
 #if wc_NUMARGS(T) != 2
     #error "Error: Template for queue must have exactly two parameters"
@@ -179,4 +125,3 @@ WCTL_DEF void wc_MEMB(_pop)(wc_self* que){
 }
 
 #undef T
-#endif // #ifdef T

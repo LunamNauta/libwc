@@ -15,65 +15,8 @@
 /* Sanity checks ---------------------------------------------------------------------------*/
 
 #ifndef T
-    #ifdef WCTL_DECLARE_BUILTINS
-        /* Builtin Declarations ---------------------------------------------------------------------------*/
-        #undef WCTL_DECLARE_BUILTINS
-        #ifndef WCTL_VEC_BUILTINS_DECLARED
-            #define WCTL_VEC_BUILTINS_DECLARED
-
-            #undef T
-            #define T wcvec_bool, bool
-            #include "vec.h"
-
-            #undef T
-            #define T wcvec_char, signed char
-            #include "vec.h"
-            #undef T
-            #define T wcvec_uchar, unsigned char
-            #include "vec.h"
-
-            #undef T
-            #define T wcvec_int, signed int
-            #include "vec.h"
-            #undef T
-            #define T wcvec_uint, unsigned int
-            #include "vec.h"
-
-            #undef T
-            #define T wcvec_short, signed short
-            #include "vec.h"
-            #undef T
-            #define T wcvec_ushort, unsigned short
-            #include "vec.h"
-
-            #undef T
-            #define T wcvec_long, signed long
-            #include "vec.h"
-            #undef T
-            #define T wcvec_ulong, unsigned long
-            #include "vec.h"
-
-            #undef T
-            #define T wcvec_llong, signed long long
-            #include "vec.h"
-            #undef T
-            #define T wcvec_ullong, unsigned long long
-            #include "vec.h"
-
-            #undef T
-            #define T wcvec_float, float
-            #include "vec.h"
-            #undef T
-            #define T wcvec_double, double
-            #include "vec.h"
-            #undef T
-            #define T wcvec_ldouble, long double
-            #include "vec.h"
-        #endif
-    #else
-        #error "Error: Template not provided for vec"
-    #endif
-#else // #ifdef T
+    #error "Error: Template not provided for vec"
+#endif
 
 #if wc_NUMARGS(T) != 2
     #error "Error: Template for vec must have exactly two parameters"
@@ -255,4 +198,3 @@ WCTL_DEF void wc_MEMB(_pop_back)(wc_self* vec){
 }
 
 #undef T
-#endif // #ifdef T

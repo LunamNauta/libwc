@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#define WCTL_DECLARE_BUILTINS
-#include "vec.h"
+#define T wcvec_float, float
+#include "wctl/vector.h"
 
-#define WCTL_DECLARE_BUILTINS
-#include "queue.h"
+#define T wcqueue_float, float
+#include "wctl/queue.h"
 
 int main(){
     wcvec_float vec;
