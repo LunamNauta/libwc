@@ -85,7 +85,6 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out){
         } while (rc != -EAGAIN && (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC));
     }
     if (!wcque_size(&ctx->events)) return -1;
-    wcque_t* que = &ctx->events;
     if (out){
         *out = *(wcinput_event_t*)wcque_back(&ctx->events);
         wcque_pop(&ctx->events);
