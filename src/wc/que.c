@@ -57,7 +57,7 @@ int wcque_reserve(wcque_t* que, size_t cap){
 }
 
 int wcque_push(wcque_t* que, const void* in){
-    if ((que->back + 1) % que->cap == que->front && wcque_reserve(que, que->cap*2)) return -1;
+    if ((que->back + 1) % que->cap == que->front && wcque_reserve(que, que->cap*3/2)) return -1;
     que->back++;
     memcpy((char*)que->data + que->dsiz*que->back, in, que->dsiz);
     return 0;
