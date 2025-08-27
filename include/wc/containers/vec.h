@@ -2,7 +2,6 @@
 #define WC_VEC_HEADER
 
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct wcvec_t{
     void* data;
