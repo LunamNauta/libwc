@@ -39,7 +39,7 @@ size_t wcque_capacity(const wcque_t* que){
 }
 size_t wcque_size(const wcque_t* que){
     if (que->back >= que->front) return que->back - que->front;
-    return que->cap - que->front + que->back + 1 - WC_QUE_DEFAULT_CAP;
+    return que->cap - que->front + que->back + 1;
 }
 bool wcque_empty(const wcque_t* que){
     return que->front == que->back;
