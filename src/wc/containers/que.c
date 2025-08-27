@@ -15,15 +15,6 @@ void wcque_free(const wcque_t* que){
     free(que->data);
 }
 
-const void* wcque_get(const wcque_t* que, size_t index){
-    return (char*)que->data + (que->dsiz*(que->front + index) % que->cap);
-}
-const void* wcque_front(const wcque_t* que){
-    return (char*)que->data + que->dsiz*que->front;
-}
-const void* wcque_back(const wcque_t* que){
-    return (char*)que->data + que->dsiz*que->back;
-}
 void* wcque_get_mut(const wcque_t* que, size_t index){
     return (char*)que->data + (que->dsiz*(que->front + index) % que->cap);
 }
@@ -32,6 +23,15 @@ void* wcque_front_mut(const wcque_t* que){
 }
 void* wcque_back_mut(const wcque_t* que){
     return (char*)que->data + que->dsiz*que->back;
+}
+const void* wcque_get(const wcque_t* que, size_t index){
+    return wcque_get_mut(que, index);
+}
+const void* wcque_front(const wcque_t* que){
+    return wcque_front_mut(que);
+}
+const void* wcque_back(const wcque_t* que){
+    return wcque_back_mut(que);
 }
 
 size_t wcque_capacity(const wcque_t* que){
@@ -44,8 +44,19 @@ bool wcque_empty(const wcque_t* que){
     return que->front == que->back;
 }
 
-int wcque_reserve(wcque_t* que, size_t cap){
+void _wcque_unwaste(wcque_t* que){
+    memmove((char*)que->data + que->dsiz*que->front, que->data, que->dsiz*(que->back - que->front + 1));
+    que->back -= que->front;
+    que->front = 0;
+}
+inline void wcque_unwaste(wcque_t* que){
+    if (que->front >= que->back) return;
+    _wcque_unwaste(que);
+}
+
+int _wcque_reserve(wcque_t* que, size_t cap, bool reshift){
     if (cap <= que->cap) return 0;
+    size_t len = que->front > que->back ? que->cap - que->front : 0;
     void* tmp = realloc(que->data, que->dsiz*cap);
     if (!tmp){
         errno = ENOMEM;
@@ -53,13 +64,23 @@ int wcque_reserve(wcque_t* que, size_t cap){
     }
     que->data = tmp;
     que->cap = cap;
+    if (len){
+        memmove((char*)que->data + que->dsiz*(que->cap - len), (char*)que->data + que->dsiz*que->front, que->dsiz*len);
+        que->front = que->cap - len;
+    }
+    else if (reshift && que->front < que->back && que->dsiz*que->front >= WC_QUE_SHIFT_CAP){
+        _wcque_unwaste(que);
+    }
     return 0;
+}
+inline int wcque_reserve(wcque_t* que, size_t cap){
+    return _wcque_reserve(que, cap, true);
 }
 
 int wcque_push(wcque_t* que, const void* in){
-    if ((que->back + 1) % que->cap == que->front && wcque_reserve(que, que->cap*3/2)) return -1;
+    if ((que->back + 1) % que->cap == que->front && _wcque_reserve(que, que->cap*3/2, false)) return -1;
+    memcpy((char*)que->data + que->dsiz*(que->back + 1), in, que->dsiz);
     que->back++;
-    memcpy((char*)que->data + que->dsiz*que->back, in, que->dsiz);
     return 0;
 }
 void wcque_pop(wcque_t* que){
@@ -68,10 +89,7 @@ void wcque_pop(wcque_t* que){
         que->front = 0;
         que->back = 0;
     }
-    else if (que->dsiz*que->front >= WC_QUE_SHIFT_CAP){
-        size_t siz = wcque_size(que);
-        memmove(que->data, (char*)que->data + que->dsiz*que->front, que->dsiz*siz);
-        que->back -= que->front;
-        que->front = 0;
+    else if (que->front < que->back && que->dsiz*que->front >= WC_QUE_SHIFT_CAP){
+        _wcque_unwaste(que);
     }
 }

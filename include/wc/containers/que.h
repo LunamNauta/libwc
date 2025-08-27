@@ -17,16 +17,18 @@ typedef struct wcque_t{
 int wcque_init(wcque_t* que, size_t dsiz);
 void wcque_free(const wcque_t* que);
 
-const void* wcque_get(const wcque_t* que, size_t index);
-const void* wcque_front(const wcque_t* que);
-const void* wcque_back(const wcque_t* que);
 void* wcque_get_mut(const wcque_t* que, size_t index);
 void* wcque_front_mut(const wcque_t* que);
 void* wcque_back_mut(const wcque_t* que);
+const void* wcque_get(const wcque_t* que, size_t index);
+const void* wcque_front(const wcque_t* que);
+const void* wcque_back(const wcque_t* que);
 
 size_t wcque_capacity(const wcque_t* que);
 size_t wcque_size(const wcque_t* que);
 bool wcque_empty(const wcque_t* que);
+
+void wcque_unwaste(wcque_t* que);
 
 int wcque_reserve(wcque_t* que, size_t cap);
 
