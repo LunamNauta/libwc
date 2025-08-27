@@ -3,12 +3,11 @@
 #include <string.h>
 #include <errno.h>
 
-int wcvec_init(wcvec_t* vec, size_t dsiz){
+void wcvec_init(wcvec_t* vec, size_t dsiz){
     vec->data = NULL;
     vec->cap = 0;
     vec->siz = 0;
     vec->dsiz = dsiz;
-    return wcvec_reserve(vec, WC_VEC_DEFAULT_CAP);
 }
 void wcvec_free(const wcvec_t* vec){
     free(vec->data);
@@ -80,7 +79,7 @@ void wcvec_clear(wcvec_t* vec){
 }
 
 int wcvec_insert(wcvec_t* vec, size_t index, const void* in){
-    if (vec->siz + 1 > vec->cap && wcvec_reserve(vec, vec->cap*3/2)) return -1;
+    if (vec->siz + 1 > vec->cap && wcvec_reserve(vec, vec->data ? vec->cap*3/2 : 2)) return -1;
     for (size_t a = vec->siz; a > index; a--){
         memcpy((char*)vec->data + vec->dsiz*a, (char*)vec->data + vec->dsiz*(a - 1), vec->dsiz);
     }
@@ -89,7 +88,7 @@ int wcvec_insert(wcvec_t* vec, size_t index, const void* in){
     return 0;
 }
 int wcvec_push_back(wcvec_t* vec, const void* in){
-    if (vec->siz + 1 > vec->cap && wcvec_reserve(vec, vec->cap*3/2)) return -1;
+    if (vec->siz + 1 > vec->cap && wcvec_reserve(vec, vec->data ? vec->cap*3/2 : 2)) return -1;
     memcpy((char*)vec->data + vec->dsiz*(vec->siz++), in, vec->dsiz);
     return 0;
 }

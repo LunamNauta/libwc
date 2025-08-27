@@ -8,6 +8,8 @@
 
 #include <libevdev-1.0/libevdev/libevdev.h>
 
+#define WC_INPUT_MAX_EVENTS 16
+
 typedef struct wcinput_device_t{
     struct libevdev* dev;
     int fd;
@@ -27,6 +29,9 @@ float wcinput_event_normalized(wcinput_event_t event, float out_min, float out_m
 
 int wcinput_ctx_init(wcinput_ctx_t* ctx);
 void wcinput_ctx_free(wcinput_ctx_t* ctx);
+
+const wcvec_t* wcinput_ctx_devices(const wcinput_ctx_t* ctx);
+const wcque_t* wcinput_ctx_events(const wcinput_ctx_t* ctx);
 
 int wcinput_ctx_find_devices(wcinput_ctx_t* ctx);
 

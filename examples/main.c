@@ -6,7 +6,7 @@ int main(){
     wcinput_ctx_t ctx;
     wcinput_ctx_init(&ctx);
     wcinput_ctx_find_devices(&ctx);
-    if (!wcvec_size(&ctx.devices)){
+    if (!wcvec_size(wcinput_ctx_devices(&ctx))){
         printf("%s\n", "Error: Failed to find any input devices");
         return -1;
     }

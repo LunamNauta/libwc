@@ -3,8 +3,6 @@
 
 #include <stdlib.h>
 
-#define WC_VEC_DEFAULT_CAP 16 // The base number of objects that can be stored
-
 typedef struct wcvec_t{
     void* data;
     size_t cap;
@@ -12,7 +10,7 @@ typedef struct wcvec_t{
     size_t dsiz;
 } wcvec_t;
 
-int wcvec_init(wcvec_t* vec, size_t dsiz);
+void wcvec_init(wcvec_t* vec, size_t dsiz);
 void wcvec_free(const wcvec_t* vec);
 
 const void* wcvec_get(const wcvec_t* vec, size_t index);

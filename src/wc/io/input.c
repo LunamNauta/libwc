@@ -1,4 +1,5 @@
 #include "wc/io/input.h"
+#include "wc/containers/que.h"
 
 #include <string.h>
 #include <errno.h>
@@ -21,13 +22,21 @@ float wcinput_event_normalized(wcinput_event_t event, float out_min, float out_m
 }
 
 int wcinput_ctx_init(wcinput_ctx_t* ctx){
-    if (wcvec_init(&ctx->devices, sizeof(wcinput_device_t))) return -1;
-    if (wcque_init(&ctx->events, sizeof(wcinput_event_t))) return -1;
+    wcvec_init(&ctx->devices, sizeof(wcinput_device_t));
+    wcque_init(&ctx->events, sizeof(wcinput_event_t));
+    if (wcque_reserve(&ctx->events, WC_INPUT_MAX_EVENTS)) return -1;
     return 0;
 }
 void wcinput_ctx_free(wcinput_ctx_t* ctx){
     wcvec_free(&ctx->devices);
     wcque_free(&ctx->events);
+}
+
+const wcvec_t* wcinput_ctx_devices(const wcinput_ctx_t* ctx){
+    return &ctx->devices;
+}
+const wcque_t* wcinput_ctx_events(const wcinput_ctx_t* ctx){
+    return &ctx->events;
 }
 
 int wcinput_ctx_find_devices(wcinput_ctx_t* ctx){
@@ -81,7 +90,7 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out){
             if (rc == -EAGAIN || rc == LIBEVDEV_READ_STATUS_SYNC) continue;
             if (event.type == EV_SYN) continue;
             wcinput_event_t tmp = {wcvec_get(&ctx->devices, a), event};
-            wcque_push(&ctx->events, &tmp);
+            wcque_push_rot(&ctx->events, &tmp);
         } while (rc != -EAGAIN && (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC));
     }
     if (!wcque_size(&ctx->events)) return -1;

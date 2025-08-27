@@ -10,7 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE sources ../src/*.c)
 
-#add_executable(main ../src/main.c)
+#add_executable(main ../examples/main.c)
 #target_sources(main PUBLIC ${sources})
 #target_link_libraries(main evdev)
 #target_include_directories(main PUBLIC ../include)

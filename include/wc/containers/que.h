@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-#define WC_QUE_DEFAULT_CAP 16 // The base number of objects that can be stored
 #define WC_QUE_SHIFT_CAP 1024 // The maximum number of bytes before the first element
 
 typedef struct wcque_t{
@@ -14,7 +13,7 @@ typedef struct wcque_t{
     size_t dsiz;
 } wcque_t;
 
-int wcque_init(wcque_t* que, size_t dsiz);
+void wcque_init(wcque_t* que, size_t dsiz);
 void wcque_free(const wcque_t* que);
 
 void* wcque_get_mut(const wcque_t* que, size_t index);
@@ -33,6 +32,7 @@ void wcque_unwaste(wcque_t* que);
 
 int wcque_reserve(wcque_t* que, size_t cap);
 
+void wcque_push_rot(wcque_t* que, const void* in);
 int wcque_push(wcque_t* que, const void* in);
 void wcque_pop(wcque_t* que);
 
