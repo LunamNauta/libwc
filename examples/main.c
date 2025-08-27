@@ -1,11 +1,50 @@
+#include "wc/containers/vec.h"
 #include "wc/io/input.h"
 
+#include <linux/input-event-codes.h>
 #include <stdio.h>
 
+const wcvec_t* get_filters(){
+    static wcvec_t filters = {0};
+    if (wcvec_data(&filters)) return &filters;
+    wcvec_init(&filters, sizeof(wcinput_event_filter_t));
+    if (wcvec_reserve(&filters, 2)) return NULL;
+
+    wcvec_t abs_filters_vec;
+    typeof((struct input_event){0}.code) abs_filters_raw[] = {
+        ABS_X, ABS_Y, ABS_Z,
+        ABS_RX, ABS_RY, ABS_RZ,
+        ABS_HAT0X, ABS_HAT0Y
+    };
+    if (wcvec_init_buf(&abs_filters_vec, abs_filters_raw, sizeof(*abs_filters_raw), sizeof(abs_filters_raw)/sizeof(*abs_filters_raw))) return NULL;
+    wcinput_event_filter_t abs_filters = {EV_ABS, abs_filters_vec};
+
+    wcvec_t key_filters_vec;
+    typeof((struct input_event){0}.code) key_filters_raw[] = {
+        BTN_NORTH, BTN_SOUTH, BTN_EAST, BTN_WEST,
+        BTN_TL, BTN_TR,
+        BTN_MODE,
+        BTN_START, BTN_SELECT,
+        BTN_THUMBL, BTN_THUMBR
+    };
+    if (wcvec_init_buf(&key_filters_vec, abs_filters_raw, sizeof(*abs_filters_raw), sizeof(abs_filters_raw)/sizeof(*abs_filters_raw))) return NULL;
+    wcinput_event_filter_t key_filters = {EV_KEY, key_filters_vec};
+
+    wcvec_push_back(&filters, &abs_filters);
+    wcvec_push_back(&filters, &key_filters);
+
+    return &filters;
+}
+
 int main(){
+    const wcvec_t* filters = get_filters();
+    if (!filters){
+        printf("%s\n", "Error: Failed to get device filters");
+        return -1;
+    }
     wcinput_ctx_t ctx;
     wcinput_ctx_init(&ctx);
-    wcinput_ctx_find_devices(&ctx);
+    wcinput_ctx_find_devices(&ctx, filters);
     if (!wcvec_size(wcinput_ctx_devices(&ctx))){
         printf("%s\n", "Error: Failed to find any input devices");
         return -1;

@@ -3,6 +3,12 @@
 #include <string.h>
 #include <errno.h>
 
+int wcvec_init_buf(wcvec_t* vec, void* buf, size_t dsiz, size_t siz){
+    wcvec_init(vec, dsiz);
+    if (wcvec_reserve(vec, vec->dsiz*siz)) return -1;
+    memcpy(vec->data, buf, vec->dsiz*siz);
+    return 0;
+}
 void wcvec_init(wcvec_t* vec, size_t dsiz){
     vec->data = NULL;
     vec->cap = 0;
@@ -13,15 +19,6 @@ void wcvec_free(const wcvec_t* vec){
     free(vec->data);
 }
 
-const void* wcvec_get(const wcvec_t* vec, size_t index){
-    return (char*)vec->data + vec->dsiz*index;
-}
-const void* wcvec_front(const wcvec_t* vec){
-    return vec->data;
-}
-const void* wcvec_back(const wcvec_t* vec){
-    return (char*)vec->data + vec->dsiz*(vec->siz - 1);
-}
 void* wcvec_get_mut(const wcvec_t* vec, size_t index){
     return (char*)vec->data + vec->dsiz*index;
 }
@@ -30,6 +27,21 @@ void* wcvec_front_mut(const wcvec_t* vec){
 }
 void* wcvec_back_mut(const wcvec_t* vec){
     return (char*)vec->data + vec->dsiz*(vec->siz - 1);
+}
+void* wcvec_data_mut(const wcvec_t* vec){
+    return vec->data;
+}
+const void* wcvec_get(const wcvec_t* vec, size_t index){
+    return wcvec_get_mut(vec, index);
+}
+const void* wcvec_front(const wcvec_t* vec){
+    return wcvec_front_mut(vec);
+}
+const void* wcvec_back(const wcvec_t* vec){
+    return wcvec_back_mut(vec);
+}
+const void* wcvec_data(const wcvec_t* vec){
+    return wcvec_data_mut(vec);
 }
 
 size_t wcvec_capacity(const wcvec_t* vec){
