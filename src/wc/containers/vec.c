@@ -170,7 +170,7 @@ size_t wcvec_bsearch(const wcvec_t* vec, const void* val, size_t beg, size_t end
     }
     return vec->siz;
 }
-int wcvec_copy(const wcvec_t* vec, wcvec_t* out, size_t beg, size_t end, void (*cpy)(void*, const void*)){
+int wcvec_copy(const wcvec_t* restrict vec, wcvec_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*)){
     if (wcvec_init_reserved(out, vec->dsiz, vec->cap)) return -1;
     if (!cpy){
         memcpy(out->data, vec->data, vec->dsiz*vec->cap);

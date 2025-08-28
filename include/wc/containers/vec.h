@@ -46,7 +46,7 @@ int wcvec_prepend_vals(wcvec_t* restrict vec, const void* restrict in, size_t le
 int wcvec_prepend(wcvec_t* restrict vec, const void* restrict in);
 
 size_t wcvec_bsearch(const wcvec_t* vec, const void* val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
-int wcvec_copy(const wcvec_t* vec, wcvec_t* out, size_t beg, size_t end, void (*cpy)(void*, const void*));
+int wcvec_copy(const wcvec_t* restrict vec, wcvec_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*));
 void wcvec_sort(wcvec_t* vec, size_t beg, size_t end, int (*cmp)(const void*, const void*));
 
 #endif
