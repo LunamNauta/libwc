@@ -6,22 +6,11 @@
 
 const wcvec_t* get_filters(){
     static wcvec_t filters = {0};
-    if (wcvec_data(&filters)) return &filters;
-    wcvec_init(&filters, sizeof(wcinput_event_filter_t));
-    if (wcvec_reserve(&filters, 2)) return NULL;
-
-    wcvec_t abs_filters_vec;
-    wcvec_init(&abs_filters_vec, sizeof(typeof((struct input_event){0}.code)));
     typeof((struct input_event){0}.code) abs_filters_raw[] = {
         ABS_X, ABS_Y, ABS_Z,
         ABS_RX, ABS_RY, ABS_RZ,
         ABS_HAT0X, ABS_HAT0Y
     };
-    if (wcvec_push_back_vals(&abs_filters_vec, abs_filters_raw, sizeof(abs_filters_raw)/sizeof(*abs_filters_raw))) return NULL;
-    wcinput_event_filter_t abs_filters = {EV_ABS, abs_filters_vec};
-
-    wcvec_t key_filters_vec;
-    wcvec_init(&key_filters_vec, sizeof(typeof((struct input_event){0}.code)));
     typeof((struct input_event){0}.code) key_filters_raw[] = {
         BTN_NORTH, BTN_SOUTH, BTN_EAST, BTN_WEST,
         BTN_TL, BTN_TR,
@@ -29,7 +18,16 @@ const wcvec_t* get_filters(){
         BTN_START, BTN_SELECT,
         BTN_THUMBL, BTN_THUMBR
     };
-    if (wcvec_push_back_vals(&key_filters_vec, key_filters_raw, sizeof(key_filters_raw)/sizeof(*key_filters_raw))) return NULL;
+    if (wcvec_data(&filters)) return &filters;
+    wcvec_init(&filters, sizeof(wcinput_event_filter_t));
+    if (wcvec_reserve(&filters, 2)) return NULL;
+
+    wcvec_t abs_filters_vec;
+    if (wcvec_init_copy(&abs_filters_vec, abs_filters_raw, sizeof(typeof((struct input_event){0}.code)), sizeof(abs_filters_raw)/sizeof(*abs_filters_raw))) return NULL;
+    wcinput_event_filter_t abs_filters = {EV_ABS, abs_filters_vec};
+
+    wcvec_t key_filters_vec;
+    if (wcvec_init_copy(&key_filters_vec, key_filters_raw, sizeof(typeof((struct input_event){0}.code)), sizeof(key_filters_raw)/sizeof(*key_filters_raw))) return NULL;
     wcinput_event_filter_t key_filters = {EV_KEY, key_filters_vec};
 
     wcvec_push_back(&filters, &abs_filters);

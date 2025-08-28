@@ -6,6 +6,15 @@
 
 #include <errno.h>
 
+int wcvec_init_copy(wcvec_t* restrict vec, void* restrict in, size_t siz, size_t dsiz){
+    vec->data = NULL;
+    vec->cap = 0;
+    vec->siz = 0;
+    vec->dsiz = dsiz;
+    if (wcvec_reserve(vec, siz)) return -1;
+    memcpy(vec->data, in, dsiz*siz);
+    return 0;
+}
 void wcvec_init_take(wcvec_t* vec, void* in, size_t siz, size_t dsiz){
     vec->data = in;
     vec->cap = siz;

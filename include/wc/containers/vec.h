@@ -11,6 +11,7 @@ typedef struct wcvec_t{
     size_t dsiz;
 } wcvec_t;
 
+int wcvec_init_copy(wcvec_t* restrict vec, void* restrict in, size_t siz, size_t dsiz);
 void wcvec_init_take(wcvec_t* vec, void* in, size_t siz, size_t dsiz);
 int wcvec_init_reserved(wcvec_t* vec, size_t dsiz, size_t cap);
 void wcvec_init(wcvec_t* vec, size_t dsiz);
