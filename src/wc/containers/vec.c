@@ -81,6 +81,12 @@ int wcvec_resize(wcvec_t* vec, size_t siz){
     return 0;
 }
 int wcvec_shrink_fit(wcvec_t* vec){
+    if (!vec->siz){
+        free(vec->data);
+        vec->data = NULL;
+        vec->cap = 0;
+        return 0;
+    }
     size_t tmp = vec->cap;
     vec->cap = 0;
     if (wcvec_reserve(vec, vec->siz)){

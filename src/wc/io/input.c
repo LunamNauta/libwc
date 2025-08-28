@@ -117,13 +117,13 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out){
             if (rc == -EAGAIN || rc == LIBEVDEV_READ_STATUS_SYNC) continue;
             if (event.type == EV_SYN) continue;
             wcinput_event_t tmp = {wcvec_get(&ctx->devices, a), event};
-            wcque_push_rot(&ctx->events, &tmp);
+            wcque_push_back_rot(&ctx->events, &tmp);
         } while (rc != -EAGAIN && (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC));
     }
     if (!wcque_size(&ctx->events)) return -1;
     if (out){
         *out = *(wcinput_event_t*)wcque_back(&ctx->events);
-        wcque_pop(&ctx->events);
+        wcque_pop_front(&ctx->events);
     }
     return 0;
 }

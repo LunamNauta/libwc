@@ -59,6 +59,7 @@ int main(){
 
         if (event.ev.type == EV_KEY && event.ev.code == BTN_MODE && !event.ev.value) break;
         float val = wcinput_event_normalized(event, -1.0f, 1.0f);
+        const wcque_t* que = &ctx.events;
         printf("%s -> %s %s %f\n",
             libevdev_get_name(event.dev->dev),
             libevdev_event_type_get_name(event.ev.type),
