@@ -31,11 +31,11 @@ void wcvec_init(wcvec_t* vec, size_t dsiz){
     vec->siz = 0;
     vec->dsiz = dsiz;
 }
+void* wcvec_free_steal(const wcvec_t* vec){
+    return vec->data;
+}
 void wcvec_free(const wcvec_t* vec){
     free(vec->data);
-}
-void* wcvec_steal(const wcvec_t* vec){
-    return vec->data;
 }
 
 void* wcvec_get(const wcvec_t* vec, size_t ind){

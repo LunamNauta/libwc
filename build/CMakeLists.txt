@@ -10,22 +10,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE sources ../src/*.c)
 
-add_executable(main ../examples/main.c)
-target_sources(main PUBLIC ${sources})
-target_link_libraries(main evdev)
-target_include_directories(main PUBLIC ../include)
-set_target_properties(main
-   PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
-
-#add_library(wc ${sources})
-#target_include_directories(wc PUBLIC ../include)
-#set_target_properties(wc
-#    PROPERTIES
+#add_executable(main ../examples/main.c)
+#target_sources(main PUBLIC ${sources})
+#target_link_libraries(main evdev)
+#target_include_directories(main PUBLIC ../include)
+#set_target_properties(main
+#   PROPERTIES
 #    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 #    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 #    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 #)
+
+add_library(wc ${sources})
+target_include_directories(wc PUBLIC ../include)
+set_target_properties(wc
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
