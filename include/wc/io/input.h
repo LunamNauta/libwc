@@ -10,22 +10,22 @@
 
 #define WC_INPUT_MAX_EVENTS 16
 
-typedef struct wcinput_device_t{
+typedef struct wcinput_device{
     struct libevdev* dev;
     int fd;
 } wcinput_device_t;
 
-typedef struct wcinput_event_t{
+typedef struct wcinput_event{
     const wcinput_device_t* dev;
     struct input_event ev;
 } wcinput_event_t;
 
-typedef struct wcinput_ctx_t{
+typedef struct wcinput_ctx{
     wcvec_t devices;
     wcque_t events;
 } wcinput_ctx_t;
 
-typedef struct wcinput_event_filter_t{
+typedef struct wcinput_event_filter{
     typeof((struct input_event){0}.type) type;
     wcvec_t codes;
 } wcinput_event_filter_t;

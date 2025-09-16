@@ -228,5 +228,3 @@ int wcque_push_front(wcque_t* restrict que, const void* restrict in){
 size_t wcque_bsearch(const wcque_t* que, const void* val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
 int wcque_copy(const wcque_t* restrict que, wcque_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*));
 void wcque_sort(wcque_t* que, size_t beg, size_t end, int (*cmp)(const void*, const void*));
-
-

@@ -5,7 +5,7 @@
 
 #define WC_QUE_SHIFT_CAP 1024
 
-typedef struct wcque_t{
+typedef struct wcque{
     void* data;
     size_t front;
     size_t back;

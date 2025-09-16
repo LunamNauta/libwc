@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct wcvec_t{
+typedef struct wcvec{
     void* data;
     size_t cap;
     size_t siz;

@@ -21,6 +21,17 @@ set_target_properties(main
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
+add_executable(set_motor_vel ../examples/set_motor_vel.c)
+target_sources(set_motor_vel PUBLIC ${sources})
+target_link_libraries(set_motor_vel evdev)
+target_include_directories(set_motor_vel PUBLIC ../include)
+set_target_properties(set_motor_vel
+   PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 add_library(wc ${sources})
 target_include_directories(wc PUBLIC ../include)
 set_target_properties(wc
