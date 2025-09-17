@@ -1,4 +1,5 @@
 #include "wc/io/input.h"
+#include "wc/containers/vec.h"
 
 #include <string.h>
 #include <errno.h>
@@ -7,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <sys/stat.h>
 #include <libudev.h>
 
 //------------------------------------------------------------------------
@@ -175,6 +177,8 @@ size_t wcinput_ctx_num_events(const wcinput_ctx_t* ctx){
 int wcinput_ctx_scan_devices(wcinput_ctx_t* ctx, const wcvec_t* filters){
     struct dirent* entry;
     wcinput_device_t dev;
+    struct stat stat1;
+    struct stat stat2;
     DIR* folder;
     int rc = 1;
 
@@ -199,7 +203,36 @@ int wcinput_ctx_scan_devices(wcinput_ctx_t* ctx, const wcvec_t* filters){
 
         dev.evfd = open(file_path, O_RDONLY | O_NONBLOCK);
         if (dev.evfd < 0) continue;
-        if (libevdev_new_from_fd(dev.evfd, &dev.evdev) < 0) continue;
+        if (fstat(dev.evfd, &stat1) < 0){
+            close(dev.evfd);
+            continue;
+        }
+        bool same_file = false;
+        for (size_t a = 0; a < wcvec_size(&ctx->devices); a++){
+            wcinput_device_t* other_dev = (wcinput_device_t*)wcvec_get(&ctx->devices, a);
+            if (fstat(other_dev->evfd, &stat2) < 0){
+                struct input_event event;
+                libevdev_free(other_dev->evdev);
+                close(other_dev->evfd);
+                event.type = EV_DEVDROP;
+                wcinput_event_t tmp = {other_dev, event};
+                wcque_push_back_rot(&ctx->events, &tmp);
+                wcvec_erase(&ctx->devices, a--);
+                continue;
+            }
+            if (stat1.st_ino == stat2.st_ino && stat1.st_dev == stat2.st_dev){
+                same_file = true;
+                break;
+            }
+        }
+        if (same_file){
+            close(dev.evfd);
+            continue;
+        }
+        if (libevdev_new_from_fd(dev.evfd, &dev.evdev) < 0){
+            close(dev.evfd);
+            continue;
+        }
     
         if (wcinput_passes_filters(&dev, filters)){
             if (wcvec_push_back(&ctx->devices, &dev) < 0) return -1;
@@ -218,6 +251,8 @@ int wcinput_ctx_wait_device(wcinput_ctx_t* ctx, const wcvec_t* filters){
     struct udev_device *device;
     wcinput_device_t dev;
     struct udev *udev;
+    struct stat stat1;
+    struct stat stat2;
     int monitor_fd;
     int device_fd;
 
@@ -253,7 +288,36 @@ int wcinput_ctx_wait_device(wcinput_ctx_t* ctx, const wcvec_t* filters){
 
                         dev.evfd = open(dev_path, O_RDONLY | O_NONBLOCK);
                         if (dev.evfd < 0) continue;
-                        if (libevdev_new_from_fd(dev.evfd, &dev.evdev) < 0) continue;
+                        if (fstat(dev.evfd, &stat1) < 0){
+                            close(dev.evfd);
+                            continue;
+                        }
+                        bool same_file = false;
+                        for (size_t a = 0; a < wcvec_size(&ctx->devices); a++){
+                            wcinput_device_t* other_dev = (wcinput_device_t*)wcvec_get(&ctx->devices, a);
+                            if (fstat(other_dev->evfd, &stat2) < 0){
+                                struct input_event event;
+                                libevdev_free(other_dev->evdev);
+                                close(other_dev->evfd);
+                                event.type = EV_DEVDROP;
+                                wcinput_event_t tmp = {other_dev, event};
+                                wcque_push_back_rot(&ctx->events, &tmp);
+                                wcvec_erase(&ctx->devices, a--);
+                                continue;
+                            }
+                            if (stat1.st_ino == stat2.st_ino && stat1.st_dev == stat2.st_dev){
+                                same_file = true;
+                                break;
+                            }
+                        }
+                        if (same_file){
+                            close(dev.evfd);
+                            continue;
+                        }
+                        if (libevdev_new_from_fd(dev.evfd, &dev.evdev) < 0){
+                            close(dev.evfd);
+                            continue;
+                        }
     
                         if (wcinput_passes_filters(&dev, filters)){
                             if (wcvec_push_back(&ctx->devices, &dev) < 0) return -1;
