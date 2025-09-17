@@ -9,8 +9,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <stdio.h> // TODO: Remove
-
 #include <libevdev-1.0/libevdev/libevdev.h>
 
 float wcinput_event_normalized(wcinput_event_t event, float out_min, float out_max){
