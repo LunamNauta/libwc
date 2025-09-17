@@ -1,5 +1,6 @@
 #include "wc/io/input.h"
 #include "wc/containers/que.h"
+#include "wc/containers/vec.h"
 
 #include <string.h>
 #include <errno.h>
@@ -7,6 +8,8 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#include <stdio.h> // TODO: Remove
 
 #include <libevdev-1.0/libevdev/libevdev.h>
 
@@ -112,11 +115,23 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out){
 
     wcinput_event_t tmp;
     for (size_t a = 0; a < wcvec_size(&ctx->devices); a++){
+        wcinput_device_t* device = wcvec_get(&ctx->devices, a);
         do{
-            rc = libevdev_next_event(((wcinput_device_t*)wcvec_get(&ctx->devices, a))->dev, LIBEVDEV_READ_FLAG_NORMAL, &event);
+            rc = libevdev_next_event(device->dev, LIBEVDEV_READ_FLAG_NORMAL, &event);
             if (rc == -EAGAIN || rc == LIBEVDEV_READ_STATUS_SYNC) continue;
+            if (rc == -ENODEV){
+                libevdev_free(device->dev);
+                close(device->fd);
+                device->dev = NULL;
+                device->fd = -1;
+                event.type = 1;
+                wcinput_event_t tmp = {device, event, true};
+                wcque_push_back_rot(&ctx->events, &tmp);
+                wcvec_erase(&ctx->devices, a--);
+                break;
+            }
             if (event.type == EV_SYN) continue;
-            wcinput_event_t tmp = {wcvec_get(&ctx->devices, a), event};
+            wcinput_event_t tmp = {device, event, false};
             wcque_push_back_rot(&ctx->events, &tmp);
         } while (rc != -EAGAIN && (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC));
     }

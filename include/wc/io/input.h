@@ -18,6 +18,7 @@ typedef struct wcinput_device{
 typedef struct wcinput_event{
     const wcinput_device_t* dev;
     struct input_event ev;
+    bool custom;
 } wcinput_event_t;
 
 typedef struct wcinput_ctx{

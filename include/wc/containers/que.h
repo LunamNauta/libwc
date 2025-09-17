@@ -14,10 +14,10 @@ typedef struct wcque{
 } wcque_t;
 
 int wcque_init_copy(wcque_t* restrict que, void* restrict in, size_t siz, size_t dsiz);
-void wcque_init_take(wcque_t* que, void* in, size_t siz, size_t dsiz);
+void wcque_init_take(wcque_t* restrict que, void* restrict in, size_t siz, size_t dsiz);
 int wcque_init_reserved(wcque_t* que, size_t dsiz, size_t cap);
 void wcque_init(wcque_t* que, size_t dsiz);
-int wcque_free_steal(const wcque_t* restrict que, void** restrict out);
+void* wcque_free_steal(const wcque_t* restrict que);
 void wcque_free(const wcque_t* que);
 
 void* wcque_get(const wcque_t* que, size_t ind);
@@ -51,8 +51,7 @@ int wcque_push_front_vals(wcque_t* restrict que, const void* restrict in, size_t
 void wcque_push_front_rot(wcque_t* restrict que, const void* restrict in);
 int wcque_push_front(wcque_t* restrict que, const void* restrict in);
 
-size_t wcque_bsearch(const wcque_t* que, const void* val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
+size_t wcque_bsearch(const wcque_t* restrict que, const void* restrict val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
 int wcque_copy(const wcque_t* restrict que, wcque_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*));
-void wcque_sort(wcque_t* que, size_t beg, size_t end, int (*cmp)(const void*, const void*));
 
 #endif

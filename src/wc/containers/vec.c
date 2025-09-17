@@ -13,9 +13,10 @@ int wcvec_init_copy(wcvec_t* restrict vec, void* restrict in, size_t siz, size_t
     vec->dsiz = dsiz;
     if (wcvec_reserve(vec, siz)) return -1;
     memcpy(vec->data, in, dsiz*siz);
+    vec->siz = dsiz;
     return 0;
 }
-void wcvec_init_take(wcvec_t* vec, void* in, size_t siz, size_t dsiz){
+void wcvec_init_take(wcvec_t* restrict vec, void* restrict in, size_t siz, size_t dsiz){
     vec->data = in;
     vec->cap = siz;
     vec->siz = siz;
@@ -164,7 +165,7 @@ int wcvec_prepend(wcvec_t* restrict vec, const void* restrict in){
     return 0;
 }
 
-size_t wcvec_bsearch(const wcvec_t* vec, const void* val, size_t beg, size_t end, int (*cmp)(const void*, const void*)){
+size_t wcvec_bsearch(const wcvec_t* restrict vec, const void* restrict val, size_t beg, size_t end, int (*cmp)(const void*, const void*)){
     size_t mid;
     int comp;
     while (beg <= end){

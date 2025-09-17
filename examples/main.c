@@ -23,17 +23,24 @@ const wcvec_t* get_filters(){
     if (wcvec_reserve(&filters, 2)) return NULL;
 
     wcvec_t abs_filters_vec;
-    if (wcvec_init_copy(&abs_filters_vec, abs_filters_raw, sizeof(typeof((struct input_event){0}.code)), sizeof(abs_filters_raw)/sizeof(*abs_filters_raw))) return NULL;
+    if (wcvec_init_copy(&abs_filters_vec, abs_filters_raw, sizeof(abs_filters_raw)/sizeof(*abs_filters_raw), sizeof(typeof((struct input_event){0}.code)))) return NULL;
     wcinput_event_filter_t abs_filters = {EV_ABS, abs_filters_vec};
 
     wcvec_t key_filters_vec;
-    if (wcvec_init_copy(&key_filters_vec, key_filters_raw, sizeof(typeof((struct input_event){0}.code)), sizeof(key_filters_raw)/sizeof(*key_filters_raw))) return NULL;
+    if (wcvec_init_copy(&key_filters_vec, key_filters_raw, sizeof(key_filters_raw)/sizeof(*key_filters_raw), sizeof(typeof((struct input_event){0}.code)))) return NULL;
     wcinput_event_filter_t key_filters = {EV_KEY, key_filters_vec};
 
     wcvec_push_back(&filters, &abs_filters);
     wcvec_push_back(&filters, &key_filters);
 
     return &filters;
+}
+void free_filters(const wcvec_t* filters){
+    for (size_t a = 0; a < wcvec_size(filters); a++){
+        const wcinput_event_filter_t* filter = wcvec_get(filters, a);
+        wcvec_free(&filter->codes);
+    }
+    wcvec_free(filters);
 }
 
 int main(){
@@ -43,19 +50,38 @@ int main(){
         return -1;
     }
     wcinput_ctx_t ctx;
-    wcinput_ctx_init(&ctx);
-    wcinput_ctx_find_devices(&ctx, filters);
-    if (!wcvec_size(wcinput_ctx_devices(&ctx))){
-        printf("%s\n", "Error: Failed to find any input devices");
+    if (wcinput_ctx_init(&ctx) < 0){
+        printf("%s\n", "Error: Failed to create input context");
         return -1;
     }
+
+    wcinput_ctx_find_devices(&ctx, filters);
+    if (!wcvec_size(wcinput_ctx_devices(&ctx))){
+        printf("%s\n", "Warning: No input devices found. Waiting for valid device to connect");
+        while(!wcvec_size(wcinput_ctx_devices(&ctx))){
+            wcinput_ctx_find_devices(&ctx, filters);
+        };
+    }
+    printf("%s\n", "Notice: Valid input device found");
 
     wcinput_event_t event;
     int rc;
 
     while (true){
+        if (!wcvec_size(wcinput_ctx_devices(&ctx))){
+            printf("%s\n", "Warning: No input devices found. Waiting for valid device to connect");
+            while (!wcvec_size(wcinput_ctx_devices(&ctx))){
+                wcinput_ctx_find_devices(&ctx, filters);
+            }
+            printf("%s\n", "Notice: Valid input device found");
+        }
+
         rc = wcinput_ctx_poll(&ctx, &event);
         if (rc) continue;
+        if (event.custom && event.ev.type == 1){
+            printf("Device disconnected\n");
+            continue;
+        }
 
         if (event.ev.type == EV_KEY && event.ev.code == BTN_MODE && !event.ev.value) break;
         float val = wcinput_event_normalized(event, -1.0f, 1.0f);
@@ -69,5 +95,6 @@ int main(){
     }
 
     wcinput_ctx_free(&ctx);
+    free_filters(filters);
     return 0;
 }

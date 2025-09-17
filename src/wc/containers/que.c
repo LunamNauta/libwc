@@ -14,7 +14,7 @@ int wcque_init_copy(wcque_t* restrict que, void* restrict in, size_t siz, size_t
     que->back = siz;
     return 0;
 }
-void wcque_init_take(wcque_t* que, void* in, size_t siz, size_t dsiz){
+void wcque_init_take(wcque_t* restrict que, void* restrict in, size_t siz, size_t dsiz){
     que->data = in;
     que->front = 0;
     que->back = siz;
@@ -36,26 +36,24 @@ void wcque_init(wcque_t* que, size_t dsiz){
     que->cap = 0;
     que->dsiz = dsiz;
 }
-int wcque_free_steal(const wcque_t* restrict que, void** restrict out){
+void* wcque_free_steal(const wcque_t* que){
     if (que->data && que->front == que->back){
-        memcpy(out, &que->data, sizeof(void*));
-        return 0;
+        return que->data;
     }
     if (que->front < que->back){
         memmove(que->data, (char*)que->data + que->dsiz*que->front, que->dsiz*(que->back - que->front));
-        memcpy(out, &que->data, sizeof(void*));
-        return 0;
+        return que->data;
     }
     void* tmp = malloc(que->dsiz*(que->cap - que->front));
     if (!tmp){
         errno = -ENOMEM;
-        return -1;
+        return NULL;
     }
     memmove(tmp, (char*)que->data + que->dsiz*que->front, que->dsiz*(que->cap - que->front));
     memmove((char*)que->data + que->dsiz*(que->cap - que->front), que->data, que->dsiz*que->back);
     memmove(que->data, tmp, que->dsiz*(que->cap - que->front));
-    memcpy(out, &que->data, sizeof(void*));
-    return 0;
+    free(tmp);
+    return que->data;
 }
 void wcque_free(const wcque_t* que){
     free(que->data);
@@ -225,6 +223,26 @@ int wcque_push_front(wcque_t* restrict que, const void* restrict in){
     return 0;
 }
 
-size_t wcque_bsearch(const wcque_t* que, const void* val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
-int wcque_copy(const wcque_t* restrict que, wcque_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*));
-void wcque_sort(wcque_t* que, size_t beg, size_t end, int (*cmp)(const void*, const void*));
+size_t wcque_bsearch(const wcque_t* restrict que, const void* restrict val, size_t beg, size_t end, int (*cmp)(const void*, const void*)){
+    size_t mid;
+    int comp;
+    while (beg <= end){
+        mid = (beg + end) / 2;
+        comp = cmp((char*)que->data + que->dsiz*((que->front + mid) % wcque_size(que)), val);
+        if (comp == 0) return mid;
+        else if (comp < 0) beg = mid + 1;
+        else end = mid - 1;
+    }
+    return wcque_size(que);
+}
+int wcque_copy(const wcque_t* restrict que, wcque_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*)){
+    if (wcque_init_reserved(out, que->dsiz, que->cap)) return -1;
+    if (!cpy){
+        memcpy(out->data, que->data, que->dsiz*que->cap);
+        return 0;
+    }
+    const void* vbeg = (char*)que->data + que->dsiz*beg;
+    void* obeg = out->data;
+    for (size_t a = beg; a < end; a++, vbeg++, obeg++) cpy(obeg, vbeg);
+    return 0;
+}

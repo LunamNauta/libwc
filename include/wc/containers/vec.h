@@ -12,7 +12,7 @@ typedef struct wcvec{
 } wcvec_t;
 
 int wcvec_init_copy(wcvec_t* restrict vec, void* restrict in, size_t siz, size_t dsiz);
-void wcvec_init_take(wcvec_t* vec, void* in, size_t siz, size_t dsiz);
+void wcvec_init_take(wcvec_t* restrict vec, void* restrict in, size_t siz, size_t dsiz);
 int wcvec_init_reserved(wcvec_t* vec, size_t dsiz, size_t cap);
 void wcvec_init(wcvec_t* vec, size_t dsiz);
 void* wcvec_free_steal(const wcvec_t* vec);
@@ -45,7 +45,7 @@ int wcvec_push_back(wcvec_t* restrict vec, const void* restrict in);
 int wcvec_prepend_vals(wcvec_t* restrict vec, const void* restrict in, size_t len);
 int wcvec_prepend(wcvec_t* restrict vec, const void* restrict in);
 
-size_t wcvec_bsearch(const wcvec_t* vec, const void* val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
+size_t wcvec_bsearch(const wcvec_t* restrict vec, const void* restrict val, size_t beg, size_t end, int (*cmp)(const void*, const void*));
 int wcvec_copy(const wcvec_t* restrict vec, wcvec_t* restrict out, size_t beg, size_t end, void (*cpy)(void*, const void*));
 void wcvec_sort(wcvec_t* vec, size_t beg, size_t end, int (*cmp)(const void*, const void*));
 
