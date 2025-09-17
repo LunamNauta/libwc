@@ -12,7 +12,7 @@ file(GLOB_RECURSE sources ../src/*.c)
 
 add_executable(main ../examples/main.c)
 target_sources(main PUBLIC ${sources})
-target_link_libraries(main evdev)
+target_link_libraries(main evdev udev)
 target_include_directories(main PUBLIC ../include)
 set_target_properties(main
    PROPERTIES
@@ -23,7 +23,7 @@ set_target_properties(main
 
 add_executable(set_motor_vel ../examples/set_motor_vel.c)
 target_sources(set_motor_vel PUBLIC ${sources})
-target_link_libraries(set_motor_vel evdev)
+target_link_libraries(set_motor_vel evdev udev)
 target_include_directories(set_motor_vel PUBLIC ../include)
 set_target_properties(set_motor_vel
    PROPERTIES

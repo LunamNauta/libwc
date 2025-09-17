@@ -57,12 +57,11 @@ int main(){
         return -1;
     }
 
-    wcinput_ctx_find_devices(&ctx, filters);
-    if (!wcvec_size(wcinput_ctx_devices(&ctx))){
+    wcinput_ctx_scan_devices(&ctx, filters);
+    if (!wcinput_ctx_num_devices(&ctx)){
         printf("%s\n", "Warning: No input devices found. Waiting for valid device to connect");
-        while(!wcvec_size(wcinput_ctx_devices(&ctx))){
-            wcinput_ctx_find_devices(&ctx, filters);
-        };
+        wcinput_ctx_wait_device(&ctx, filters);
+        printf("%s\n", "Notice: Valid input device found");
     }
     printf("%s\n", "Notice: Valid input device found");
 
@@ -70,17 +69,15 @@ int main(){
     int rc;
 
     while (true){
-        if (!wcvec_size(wcinput_ctx_devices(&ctx))){
+        if (!wcinput_ctx_num_devices(&ctx)){
             printf("%s\n", "Warning: No input devices found. Waiting for valid device to connect");
-            while (!wcvec_size(wcinput_ctx_devices(&ctx))){
-                wcinput_ctx_find_devices(&ctx, filters);
-            }
+            wcinput_ctx_wait_device(&ctx, filters);
             printf("%s\n", "Notice: Valid input device found");
         }
 
         rc = wcinput_ctx_poll(&ctx, &event);
         if (rc) continue;
-        if (event.custom && event.ev.type == 1){
+        if (event.ev.type == EV_DEVDROP){
             printf("Device disconnected\n");
             continue;
         }
@@ -89,9 +86,9 @@ int main(){
         float val = wcinput_event_normalized(event, -1.0f, 1.0f);
         const wcque_t* que = &ctx.events;
         printf("%s -> %s %s %f\n",
-            libevdev_get_name(event.dev->dev),
-            libevdev_event_type_get_name(event.ev.type),
-            libevdev_event_code_get_name(event.ev.type, event.ev.code),
+            wcinput_get_name(event.dev),
+            wcinput_event_type_get_name(event),
+            wcinput_event_code_get_name(event),
             val
         );
     }
