@@ -32,6 +32,18 @@ set_target_properties(set_motor_vel
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
+
+add_executable(tank_track_movement ../examples/tank_track_movement.c)
+target_sources(tank_track_movement PUBLIC ${sources})
+target_link_libraries(tank_track_movement evdev udev)
+target_include_directories(tank_track_movement PUBLIC ../include)
+set_target_properties(tank_track_movement
+   PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 add_library(wc ${sources})
 target_include_directories(wc PUBLIC ../include)
 set_target_properties(wc

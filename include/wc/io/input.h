@@ -11,7 +11,7 @@
 #define EV_DEVDROP EV_CNT
 #define EV_CNT_ACT (EV_CNT+1)
 
-#define WC_INPUT_MAX_EVENTS 16
+#define WC_INPUT_MAX_EVENTS 64
 
 //------------------------------------------------------------------------
 
@@ -99,6 +99,8 @@ int wcinput_ctx_scan_devices(wcinput_ctx_t* ctx, const wcvec_t* filters);
 int wcinput_ctx_wait_device(wcinput_ctx_t* ctx, const wcvec_t* filters);
 
 int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out_ev);
+
+int wcinput_ctx_pop_event(wcinput_ctx_t* ctx, wcinput_event_t* out_ev);
 
 //------------------------------------------------------------------------
 

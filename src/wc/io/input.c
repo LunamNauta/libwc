@@ -368,4 +368,11 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out_ev){
     return 0;
 }
 
+int wcinput_ctx_pop_event(wcinput_ctx_t* ctx, wcinput_event_t* out_ev){
+    if (!wcque_size(&ctx->events)) return -1;
+    if (out_ev) *out_ev = *(wcinput_event_t*)wcque_back(&ctx->events);
+    wcque_pop_front(&ctx->events);
+    return 0; 
+}
+
 //------------------------------------------------------------------------
