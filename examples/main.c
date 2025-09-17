@@ -3,8 +3,9 @@
 
 #include <linux/input-event-codes.h>
 #include <stdio.h>
+#include <string.h>
 
-const wcvec_t* get_filters(){
+wcvec_t* get_filters(){
     static wcvec_t filters = {0};
     typeof((struct input_event){0}.code) abs_filters_raw[] = {
         ABS_X, ABS_Y, ABS_Z,
@@ -35,16 +36,17 @@ const wcvec_t* get_filters(){
 
     return &filters;
 }
-void free_filters(const wcvec_t* filters){
+void free_filters(wcvec_t* filters){
     for (size_t a = 0; a < wcvec_size(filters); a++){
-        const wcinput_event_filter_t* filter = wcvec_get(filters, a);
+        wcinput_event_filter_t* filter = wcvec_get(filters, a);
         wcvec_free(&filter->codes);
     }
     wcvec_free(filters);
+    memset(filters, 0, sizeof(wcvec_t));
 }
 
 int main(){
-    const wcvec_t* filters = get_filters();
+    wcvec_t* filters = get_filters();
     if (!filters){
         printf("%s\n", "Error: Failed to get device filters");
         return -1;
