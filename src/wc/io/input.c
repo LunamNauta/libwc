@@ -1,6 +1,7 @@
 #include "wc/io/input.h"
 #include "wc/containers/vec.h"
 
+#include <libevdev-1.0/libevdev/libevdev.h>
 #include <string.h>
 #include <errno.h>
 
@@ -11,124 +12,11 @@
 #include <sys/stat.h>
 #include <libudev.h>
 
-//------------------------------------------------------------------------
-
-const char* wcinput_get_name(const wcinput_device_t* dev){
-    return libevdev_get_name(dev->evdev);
-}
-const char* wcinput_get_phys(const wcinput_device_t* dev){
-    return libevdev_get_phys(dev->evdev);
-}
-const char* wcinput_get_uniq(const wcinput_device_t* dev){
-    return libevdev_get_uniq(dev->evdev);
-}
-
-int wcinput_get_id_product(const wcinput_device_t* dev){
-    return libevdev_get_id_product(dev->evdev);
-}
-int wcinput_get_id_vendor(const wcinput_device_t* dev){
-    return libevdev_get_id_vendor(dev->evdev);
-}
-int wcinput_get_id_bustype(const wcinput_device_t* dev){
-    return libevdev_get_id_bustype(dev->evdev);
-}
-int wcinput_get_id_version(const wcinput_device_t* dev){
-    return libevdev_get_id_version(dev->evdev);
-}
-int wcinput_get_driver(const wcinput_device_t* dev){
-    return libevdev_get_driver_version(dev->evdev);
-}
-
-int wcinput_has_prop(const wcinput_device_t* dev, unsigned int prop){
-    return libevdev_has_property(dev->evdev, prop);
-}
-int wcinput_has_evtype(const wcinput_device_t* dev, unsigned int type){
-    return libevdev_has_event_type(dev->evdev, type);
-}
-int wcinput_has_evcode(const wcinput_device_t* dev, unsigned int type, unsigned int code){
-    return libevdev_has_event_code(dev->evdev, type, code);
-}
-
-int wcinput_get_abs_min(const wcinput_device_t* dev, unsigned int code){
-    return libevdev_get_abs_minimum(dev->evdev, code);
-}
-int wcinput_get_abs_max(const wcinput_device_t* dev, unsigned int code){
-    return libevdev_get_abs_maximum(dev->evdev, code);
-}
-int wcinput_get_abs_fuzz(const wcinput_device_t* dev, unsigned int code){
-    return libevdev_get_abs_fuzz(dev->evdev, code);
-}
-int wcinput_get_abs_flat(const wcinput_device_t* dev, unsigned int code){
-    return libevdev_get_abs_flat(dev->evdev, code);
-}
-int wcinput_get_abs_res(const wcinput_device_t* dev, unsigned int code){
-    return libevdev_get_abs_resolution(dev->evdev, code);
-}
-const struct input_absinfo* wcinput_get_abs_info(const wcinput_device_t* dev, unsigned int code){
-    return libevdev_get_abs_info(dev->evdev, code);
-}
-int wcinput_device_get_evval(const wcinput_device_t* dev, unsigned int type, unsigned int code){
-    return libevdev_get_event_value(dev->evdev, type, code);
-}
-int wcinput_device_fetch_evval(const wcinput_device_t* dev, unsigned int type, unsigned int code, int* val){
-    return libevdev_fetch_event_value(dev->evdev, type, code, val);
-}
-int wcinput_device_get_repeat(const wcinput_device_t* dev, int* delay, int* period){
-    return libevdev_get_repeat(dev->evdev, delay, period);
-}
+#include <stdio.h> // TODO: Remove
 
 //------------------------------------------------------------------------
 
-int wcinput_get_slotval(const wcinput_device_t* dev, unsigned int slot, unsigned int code){
-    return libevdev_get_slot_value(dev->evdev, slot, code);
-}
-int wcinput_fetch_slotval(const wcinput_device_t* dev, unsigned int slot, unsigned int code, int* val){
-    return libevdev_fetch_slot_value(dev->evdev, slot, code, val);
-}
-int wcinput_get_num_slots(const wcinput_device_t* dev){
-    return libevdev_get_num_slots(dev->evdev);
-}
-int wcinput_get_current_slot(const wcinput_device_t* dev){
-    return libevdev_get_current_slot(dev->evdev);
-}
-
-//------------------------------------------------------------------------
-
-int wcinput_next_ev(const wcinput_device_t* dev, unsigned int flags, wcinput_event_t* ev){
-    ev->dev = dev;
-    return libevdev_next_event(dev->evdev, flags, &ev->ev);
-}
-int wcinput_has_event(const wcinput_device_t* dev){
-    return libevdev_has_event_pending(dev->evdev);
-}
-
-//------------------------------------------------------------------------
-
-const char* wcinput_event_type_get_name(wcinput_event_t event){
-    return libevdev_event_type_get_name(event.ev.type);
-}
-const char* wcinput_event_code_get_name(wcinput_event_t event){
-    return libevdev_event_code_get_name(event.ev.type, event.ev.code);
-}
-
-float wcinput_event_normalized(wcinput_event_t event, float out_min, float out_max){
-    if (event.ev.type == EV_KEY){
-        if (event.ev.value) return out_max;
-        else return out_min;
-    }
-    if (event.ev.type != EV_ABS) return event.ev.value;
-    int flat = libevdev_get_abs_flat(event.dev->evdev, event.ev.code);
-    int in_max = libevdev_get_abs_maximum(event.dev->evdev, event.ev.code) - flat;
-    int in_min = libevdev_get_abs_minimum(event.dev->evdev, event.ev.code) + flat;
-    int in_range = in_max - in_min;
-    int out_range = out_max - out_min;
-    float value = event.ev.value < 0 ? event.ev.value + flat : event.ev.value - flat;
-    return (value - in_min)*out_range/in_range + out_min;
-}
-
-//------------------------------------------------------------------------
-
-bool wcinput_passes_filters(const wcinput_device_t* dev, const wcvec_t* filters){
+bool wcinput_dev_passes_filters(const wcinput_device_t* dev, const wcvec_t* filters){
     bool valid = true;
     if (!filters) return true;
     for (size_t a = 0; valid && a < wcvec_size(filters); a++){
@@ -146,6 +34,40 @@ bool wcinput_passes_filters(const wcinput_device_t* dev, const wcvec_t* filters)
         }
     }
     return valid;
+}
+const struct libevdev* wcinput_dev_evdev(const wcinput_device_t* dev){
+    return dev->evdev;
+}
+int wcinput_dev_evfd(const wcinput_device_t* dev){
+    return dev->evfd;
+}
+
+const struct libevdev* wcinput_ev_evdev(const wcinput_event_t* ev){
+    return ev->dev->evdev;
+}
+const wcinput_device_t* wcinput_ev_dev(const wcinput_event_t* ev){
+    return ev->dev;
+}
+struct input_event wcinput_ev_ev(const wcinput_event_t* ev){
+    return ev->ev;
+}
+int wcinput_ev_evfd(const wcinput_event_t* ev){
+    return ev->dev->evfd;
+}
+
+float wcinput_event_normalized(wcinput_event_t event, float out_min, float out_max){
+    if (event.ev.type == EV_KEY){
+        if (event.ev.value) return out_max;
+        else return out_min;
+    }
+    if (event.ev.type != EV_ABS) return event.ev.value;
+    int flat = libevdev_get_abs_flat(event.dev->evdev, event.ev.code);
+    int in_max = libevdev_get_abs_maximum(event.dev->evdev, event.ev.code) - flat;
+    int in_min = libevdev_get_abs_minimum(event.dev->evdev, event.ev.code) + flat;
+    int in_range = in_max - in_min;
+    int out_range = out_max - out_min;
+    float value = event.ev.value < 0 ? event.ev.value + flat : event.ev.value - flat;
+    return (value - in_min)*out_range/in_range + out_min;
 }
 
 //------------------------------------------------------------------------
@@ -167,6 +89,12 @@ const wcque_t* wcinput_ctx_events(const wcinput_ctx_t* ctx){
     return &ctx->events;
 }
 
+bool wcinput_ctx_event_pending(const wcinput_ctx_t* ctx){
+    for (size_t a = 0; a < wcvec_size(&ctx->devices); a++){
+        if (libevdev_has_event_pending(wcvec_get(&ctx->devices, a)) > 0) return true;
+    }
+    return false;
+}
 size_t wcinput_ctx_num_devices(const wcinput_ctx_t* ctx){
     return wcvec_size(&ctx->devices);
 }
@@ -234,7 +162,7 @@ int wcinput_ctx_scan_devices(wcinput_ctx_t* ctx, const wcvec_t* filters){
             continue;
         }
     
-        if (wcinput_passes_filters(&dev, filters)){
+        if (wcinput_dev_passes_filters(&dev, filters)){
             if (wcvec_push_back(&ctx->devices, &dev) < 0) return -1;
         }
         else{
@@ -319,7 +247,7 @@ int wcinput_ctx_wait_device(wcinput_ctx_t* ctx, const wcvec_t* filters){
                             continue;
                         }
     
-                        if (wcinput_passes_filters(&dev, filters)){
+                        if (wcinput_dev_passes_filters(&dev, filters)){
                             if (wcvec_push_back(&ctx->devices, &dev) < 0) return -1;
                             break;
                         }
@@ -343,9 +271,11 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out_ev){
     wcinput_event_t tmp;
     for (size_t a = 0; a < wcvec_size(&ctx->devices); a++){
         wcinput_device_t* dev = wcvec_get(&ctx->devices, a);
+        if (libevdev_has_event_pending(dev->evdev) <= 0) continue;
         do{
             rc = libevdev_next_event(dev->evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-            if (rc == -EAGAIN || rc == LIBEVDEV_READ_STATUS_SYNC) continue;
+            if (rc == LIBEVDEV_READ_STATUS_SYNC) continue;
+            if (rc == -EAGAIN) break;
             if (rc == -ENODEV){
                 libevdev_free(dev->evdev);
                 close(dev->evfd);
@@ -358,7 +288,7 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out_ev){
             if (event.type == EV_SYN) continue;
             wcinput_event_t tmp = {dev, event};
             wcque_push_back_rot(&ctx->events, &tmp);
-        } while (rc != -EAGAIN && (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC));
+        } while (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC);
     }
     if (!wcque_size(&ctx->events)) return -1;
     if (out_ev){

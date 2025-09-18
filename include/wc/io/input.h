@@ -37,52 +37,16 @@ typedef struct wcinput_ctx{
 
 //------------------------------------------------------------------------
 
-const char* wcinput_get_name(const wcinput_device_t* dev);
-const char* wcinput_get_phys(const wcinput_device_t* dev);
-const char* wcinput_get_uniq(const wcinput_device_t* dev);
+bool wcinput_dev_passes_filters(const wcinput_device_t* dev, const wcvec_t* filters);
+const struct libevdev* wcinput_dev_evdev(const wcinput_device_t* dev);
+int wcinput_dev_evfd(const wcinput_device_t* dev);
 
-int wcinput_get_id_product(const wcinput_device_t* dev);
-int wcinput_get_id_vendor(const wcinput_device_t* dev);
-int wcinput_get_id_bustype(const wcinput_device_t* dev);
-int wcinput_get_id_version(const wcinput_device_t* dev);
-int wcinput_get_driver(const wcinput_device_t* dev);
-
-int wcinput_has_prop(const wcinput_device_t* dev, unsigned int prop);
-int wcinput_has_evtype(const wcinput_device_t* dev, unsigned int type);
-int wcinput_has_evcode(const wcinput_device_t* dev, unsigned int type, unsigned int code);
-
-int wcinput_get_abs_min(const wcinput_device_t* dev, unsigned int code);
-int wcinput_get_abs_max(const wcinput_device_t* dev, unsigned int code);
-int wcinput_get_abs_fuzz(const wcinput_device_t* dev, unsigned int code);
-int wcinput_get_abs_flat(const wcinput_device_t* dev, unsigned int code);
-int wcinput_get_abs_res(const wcinput_device_t* dev, unsigned int code);
-const struct input_absinfo* wcinput_get_abs_info(const wcinput_device_t* dev, unsigned int code);
-int wcinput_device_get_evval(const wcinput_device_t* dev, unsigned int type, unsigned int code);
-int wcinput_device_fetch_evval(const wcinput_device_t* dev, unsigned int type, unsigned int code, int* val);
-int wcinput_device_get_repeat(const wcinput_device_t* dev, int* delay, int* period);
-
-//------------------------------------------------------------------------
-
-int wcinput_get_slotval(const wcinput_device_t* dev, unsigned int slot, unsigned int code);
-int wcinput_fetch_slotval(const wcinput_device_t* dev, unsigned int slot, unsigned int code, int* val);
-int wcinput_get_num_slots(const wcinput_device_t* dev);
-int wcinput_get_current_slot(const wcinput_device_t* dev);
-
-//------------------------------------------------------------------------
-
-int wcinput_next_ev(const wcinput_device_t* dev, unsigned int flags, wcinput_event_t* ev);
-int wcinput_has_event(const wcinput_device_t* dev);
-
-//------------------------------------------------------------------------
-
-const char* wcinput_event_type_get_name(wcinput_event_t event);
-const char* wcinput_event_code_get_name(wcinput_event_t event);
+const struct libevdev* wcinput_ev_evdev(const wcinput_event_t* ev);
+const wcinput_device_t* wcinput_ev_dev(const wcinput_event_t* ev);
+struct input_event wcinput_ev_ev(const wcinput_event_t* ev);
+int wcinput_ev_evfd(const wcinput_event_t* ev);
 
 float wcinput_event_normalized(wcinput_event_t event, float out_min, float out_max);
-
-//------------------------------------------------------------------------
-
-bool wcinput_passes_filters(const wcinput_device_t* dev, const wcvec_t* filters);
 
 //------------------------------------------------------------------------
 
@@ -92,6 +56,7 @@ void wcinput_ctx_free(wcinput_ctx_t* ctx);
 const wcvec_t* wcinput_ctx_devices(const wcinput_ctx_t* ctx);
 const wcque_t* wcinput_ctx_events(const wcinput_ctx_t* ctx);
 
+bool wcinput_ctx_event_pending(const wcinput_ctx_t* ctx);
 size_t wcinput_ctx_num_devices(const wcinput_ctx_t* ctx);
 size_t wcinput_ctx_num_events(const wcinput_ctx_t* ctx);
 

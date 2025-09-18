@@ -1,6 +1,7 @@
 #include "wc/containers/vec.h"
 #include "wc/io/input.h"
 
+#include <libevdev-1.0/libevdev/libevdev.h>
 #include <linux/input-event-codes.h>
 #include <stdio.h>
 #include <string.h>
@@ -76,7 +77,7 @@ int main(){
         }
 
         rc = wcinput_ctx_poll(&ctx, &event);
-        if (rc) continue;
+        if (rc < 0) continue;
         if (event.ev.type == EV_DEVDROP){
             printf("Device disconnected\n");
             continue;
@@ -86,9 +87,9 @@ int main(){
         float val = wcinput_event_normalized(event, -1.0f, 1.0f);
         const wcque_t* que = &ctx.events;
         printf("%s -> %s %s %f\n",
-            wcinput_get_name(event.dev),
-            wcinput_event_type_get_name(event),
-            wcinput_event_code_get_name(event),
+            libevdev_get_name(wcinput_ev_evdev(&event)),
+            libevdev_event_type_get_name(wcinput_ev_ev(&event).type),
+            libevdev_event_code_get_name(wcinput_ev_ev(&event).type, wcinput_ev_ev(&event).code),
             val
         );
     }
