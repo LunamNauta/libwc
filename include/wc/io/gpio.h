@@ -28,7 +28,7 @@ typedef enum wcgpio_line_flag_val{
     WCGPIO_LINE_FLAG_VAL_ERR = 2
 } wcgpio_line_flag_val_t;
 
-typedef enum wcpgio_line_flag_dir{
+typedef enum wcgpio_line_flag_dir{
     WCGPIO_LINE_FLAG_DIR_AS_IS = 0,
     WCGPIO_LINE_FLAG_OUTPUT = GPIO_V2_LINE_FLAG_OUTPUT,
     WCGPIO_LINE_FLAG_INPUT = GPIO_V2_LINE_FLAG_INPUT
@@ -74,9 +74,9 @@ typedef struct wcgpio_chip{
 int wcgpio_chip_init(wcgpio_chip_t* chip, size_t id);
 void wcgpio_chip_free(const wcgpio_chip_t* chip);
 
-const char* wcpgio_chip_get_path(const wcgpio_chip_t* chip);
-size_t wcpgio_chip_get_id(const wcgpio_chip_t* chip);
-int wcpgio_chip_get_fd(const wcgpio_chip_t* chip);
+const char* wcgpio_chip_get_path(const wcgpio_chip_t* chip);
+size_t wcgpio_chip_get_id(const wcgpio_chip_t* chip);
+int wcgpio_chip_get_fd(const wcgpio_chip_t* chip);
 
 //------------------------------------------------------------------------
 
@@ -86,9 +86,9 @@ typedef struct wcgpio_chip_info{
 
 int wcgpio_chip_info_init(wcgpio_chip_info_t* info, const wcgpio_chip_t* chip);
 
-const char* wcpgio_chip_info_get_name(const wcgpio_chip_info_t* info);
-const char* wcpgio_chip_info_get_label(const wcgpio_chip_info_t* info);
-size_t wcpgio_chip_info_get_lines(const wcgpio_chip_info_t* info);
+const char* wcgpio_chip_info_get_name(const wcgpio_chip_info_t* info);
+const char* wcgpio_chip_info_get_label(const wcgpio_chip_info_t* info);
+size_t wcgpio_chip_info_get_lines(const wcgpio_chip_info_t* info);
 
 //------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ typedef struct wcgpio_line_cfg{
     struct gpio_v2_line_config cfg;
 } wcgpio_line_cfg_t;
 
-void wcgpio_line_cfg_init(wcgpio_line_cfg_t* cfg);
+void wcgpio_line_cfg_zero(wcgpio_line_cfg_t* cfg);
 
 void wcgpio_line_cfg_set_dir(wcgpio_line_cfg_t* cfg, wcgpio_line_flag_dir_t dir);
 void wcgpio_line_cfg_set_edge(wcgpio_line_cfg_t* cfg, wcgpio_line_flag_edge_t edge);
@@ -132,13 +132,14 @@ typedef struct wcgpio_line_req{
     struct gpio_v2_line_request req;
 } wcgpio_line_req_t;
 
-void wcgpio_line_req_init(wcgpio_line_req_t* req);
+void wcgpio_line_req_zero(wcgpio_line_req_t* req);
+int wcgpio_line_req_init(wcgpio_line_req_t* req, const wcgpio_chip_t* chip);
+void wcgpio_line_req_free(const wcgpio_line_req_t* req);
 
 void wcgpio_line_req_set_offsets(wcgpio_line_req_t* req, size_t bits);
 void wcgpio_line_req_set_consumer(wcgpio_line_req_t* req, const char* consumer);
 void wcgpio_line_req_set_config(wcgpio_line_req_t* req, const wcgpio_line_cfg_t* cfg);
 void wcgpio_line_req_set_event_buf_size(wcgpio_line_req_t* req, size_t size);
-int wcgpio_line_req_get_line(wcgpio_line_req_t* req, const wcgpio_chip_t* chip);
 
 //------------------------------------------------------------------------
 
@@ -146,7 +147,7 @@ typedef struct wcgpio_line_vals{
     struct gpio_v2_line_values vals;
 } wcgpio_line_vals_t;
 
-void wcgpio_line_vals_init(wcgpio_line_vals_t* vals);
+void wcgpio_line_vals_zero(wcgpio_line_vals_t* vals);
 
 wcgpio_line_flag_val_t wcgpio_line_vals_get_val(const wcgpio_line_vals_t* vals, size_t bits);
 void wcgpio_line_vals_set_vals(wcgpio_line_vals_t* vals, size_t bits, size_t mask);

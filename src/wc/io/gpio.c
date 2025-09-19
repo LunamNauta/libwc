@@ -1,5 +1,6 @@
 #include "wc/io/gpio.h"
 
+#include <linux/gpio.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
@@ -35,7 +36,7 @@ int wcgpio_chip_init(wcgpio_chip_t* chip, size_t id){
     if (!chip->path) return -1;
     strcpy(chip->path, PWMCHIP_BASE_PATH);
     sprintf(chip->path + strlen(PWMCHIP_BASE_PATH), "%zu", id);
-    int fd = open(chip->path, O_NONBLOCK | O_WRONLY);
+    int fd = open(chip->path, O_RDWR);
     if (fd < 0){
         free(chip->path);
         return -1;
@@ -49,13 +50,13 @@ void wcgpio_chip_free(const wcgpio_chip_t* chip){
     close(chip->fd);
 }
 
-const char* wcpgio_chip_get_path(const wcgpio_chip_t* chip){
+const char* wcgpio_chip_get_path(const wcgpio_chip_t* chip){
     return chip->path;
 }
-size_t wcpgio_chip_get_id(const wcgpio_chip_t* chip){
+size_t wcgpio_chip_get_id(const wcgpio_chip_t* chip){
     return chip->id;
 }
-int wcpgio_chip_get_fd(const wcgpio_chip_t* chip){
+int wcgpio_chip_get_fd(const wcgpio_chip_t* chip){
     return chip->fd;
 }
 
@@ -66,13 +67,13 @@ int wcgpio_chip_info_init(wcgpio_chip_info_t* info, const wcgpio_chip_t* chip){
     return 0;
 }
 
-const char* wcpgio_chip_info_get_name(const wcgpio_chip_info_t* info){
+const char* wcgpio_chip_info_get_name(const wcgpio_chip_info_t* info){
     return info->info.name;
 }
-const char* wcpgio_chip_info_get_label(const wcgpio_chip_info_t* info){
+const char* wcgpio_chip_info_get_label(const wcgpio_chip_info_t* info){
     return info->info.label;
 }
-size_t wcpgio_chip_info_get_lines(const wcgpio_chip_info_t* info){
+size_t wcgpio_chip_info_get_lines(const wcgpio_chip_info_t* info){
     return info->info.lines;
 }
 
@@ -134,7 +135,7 @@ size_t wcgpio_line_info_get_debounce_us(const wcgpio_line_info_t* info){
 
 //------------------------------------------------------------------------
 
-void wcgpio_line_cfg_init(wcgpio_line_cfg_t* cfg){
+void wcgpio_line_cfg_zero(wcgpio_line_cfg_t* cfg){
     memset(cfg, 0, sizeof(wcgpio_line_cfg_t));
 }
 
@@ -167,6 +168,7 @@ void wcgpio_line_cfg_set_active_low(wcgpio_line_cfg_t* cfg, bool active_low){
     cfg->cfg.flags |= (active_low ? WCGPIO_LINE_FLAG_ACTIVE_LOW : 0);
 }
 void wcgpio_line_cfg_add_attr(wcgpio_line_cfg_t* cfg, size_t id, size_t val, size_t mask){
+    if (cfg->cfg.num_attrs == GPIO_V2_LINE_NUM_ATTRS_MAX) return; 
     cfg->cfg.attrs[cfg->cfg.num_attrs].mask = mask;
     cfg->cfg.attrs[cfg->cfg.num_attrs].attr.id = id;
     if (id == WCGPIO_LINE_ATTR_DEBOUNCE) cfg->cfg.attrs[cfg->cfg.num_attrs].attr.debounce_period_us = val;
@@ -177,17 +179,24 @@ void wcgpio_line_cfg_add_attr(wcgpio_line_cfg_t* cfg, size_t id, size_t val, siz
 
 //------------------------------------------------------------------------
 
-void wcgpio_line_req_init(wcgpio_line_req_t* req){
+void wcgpio_line_req_zero(wcgpio_line_req_t* req){
     memset(req, 0, sizeof(wcgpio_line_req_t));
+}
+int wcgpio_line_req_init(wcgpio_line_req_t* req, const wcgpio_chip_t* chip){
+    if (ioctl(chip->fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &req->req) < 0) return -1;
+    return 0;
+}
+void wcgpio_line_req_free(const wcgpio_line_req_t* req){
+    close(req->req.fd);
 }
 
 void wcgpio_line_req_set_offsets(wcgpio_line_req_t* req, size_t bits){
     for (size_t a = 1, b = 0; a != 0 && b < GPIO_V2_LINES_MAX; a <<= 1, b++){
-        if (bits & a) req->req.offsets[req->req.num_lines++] = a;
+        if (bits & a) req->req.offsets[req->req.num_lines++] = b;
     }
 }
 void wcgpio_line_req_set_consumer(wcgpio_line_req_t* req, const char* consumer){
-    strcpy(req->req.consumer, consumer);
+    strncpy(req->req.consumer, consumer, GPIO_MAX_NAME_SIZE);
 }
 void wcgpio_line_req_set_config(wcgpio_line_req_t* req, const wcgpio_line_cfg_t* cfg){
     req->req.config = cfg->cfg;
@@ -195,14 +204,10 @@ void wcgpio_line_req_set_config(wcgpio_line_req_t* req, const wcgpio_line_cfg_t*
 void wcgpio_line_req_set_event_buf_size(wcgpio_line_req_t* req, size_t size){
     req->req.event_buffer_size = size;
 }
-int wcgpio_line_req_get_line(wcgpio_line_req_t* req, const wcgpio_chip_t* chip){
-    if (ioctl(chip->fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &req->req) < 0) return -1;
-    return 0;
-}
 
 //------------------------------------------------------------------------
 
-void wcgpio_line_vals_init(wcgpio_line_vals_t* vals){
+void wcgpio_line_vals_zero(wcgpio_line_vals_t* vals){
     memset(vals, 0, sizeof(wcgpio_line_vals_t));
 }
 
