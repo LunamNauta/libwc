@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <sys/stat.h>
+
 //------------------------------------------------------------------------
 
 size_t _wcpwm_integer_strlen(size_t num){
@@ -20,6 +22,11 @@ int wcpwm_chip_init(wcpwm_chip_t* chip, size_t id){
     if (!chip->path) return -1;
     strcpy(chip->path, PWMCHIP_BASE_PATH);
     sprintf(chip->path + strlen(PWMCHIP_BASE_PATH), "%zu", id);
+    struct stat sb;
+    if (stat(chip->path, &sb) < 0 || !S_ISDIR(sb.st_mode)){
+        free(chip->path);
+        return -1;
+    }
     chip->id = id;
     return 0;
 }

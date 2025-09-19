@@ -69,34 +69,33 @@ float current_time_ms() {
 }
 
 int main(){
-    struct can_frame frame;
-    wcinput_ctx_t ctx;
+    wcinput_ctx_t input_ctx;
+    wccan_ctx_t can_ctx;
+    wccan_frame_t frame;
     wcvec_t* filters;
-    int can_socket;
 
     filters = get_filters();
     if (!filters){
         printf("%s\n", "Error: Failed to get device filters");
         return -1;
     }
-    if (wcinput_ctx_init(&ctx) < 0){
+    if (wcinput_ctx_init(&input_ctx) < 0){
         printf("%s\n", "Error: Failed to create input context");
         return -1;
     }
-    can_socket = wccan_init_socket();
-    if (can_socket < 0){
+    if (wccan_ctx_init(&can_ctx) < 0){
         printf("Error: Failed to create CAN socket\n");
         return -1;
     }
-    if (wccan_bind_socket(can_socket, "can0", NULL) < 0){
+    if (wccan_ctx_bind(&can_ctx, "can0", NULL) < 0){
         printf("Error: Failed to bind CAN socket\n");
         return -1;
     }
 
-    wcinput_ctx_scan_devices(&ctx, filters);
-    if (!wcinput_ctx_num_devices(&ctx)){
+    wcinput_ctx_scan_devices(&input_ctx, filters);
+    if (!wcinput_ctx_num_devices(&input_ctx)){
         printf("%s\n", "Warning: No input devices found. Waiting for valid device to connect");
-        wcinput_ctx_wait_device(&ctx, filters);
+        wcinput_ctx_wait_device(&input_ctx, filters);
         printf("%s\n", "Notice: Valid input device found");
     }
     printf("%s\n", "Notice: Valid input device found");
@@ -114,14 +113,14 @@ int main(){
 
     bool quit = false;
     while (!quit){
-        if (!wcinput_ctx_num_devices(&ctx)){
+        if (!wcinput_ctx_num_devices(&input_ctx)){
             printf("%s\n", "Warning: No input devices found. Waiting for valid device to connect");
-            wcinput_ctx_wait_device(&ctx, filters);
+            wcinput_ctx_wait_device(&input_ctx, filters);
             printf("%s\n", "Notice: Valid input device found");
         }
 
-        rc = wcinput_ctx_poll(&ctx, NULL);
-        while (!wcinput_ctx_pop_event(&ctx, &event)){
+        rc = wcinput_ctx_poll(&input_ctx, NULL);
+        while (!wcinput_ctx_pop_event(&input_ctx, &event)){
             if (event.ev.type == EV_DEVDROP){
                 printf("Device disconnected\n");
                 continue;
@@ -149,14 +148,15 @@ int main(){
         left_duty = left_duty < -1.0f ? -1.0f : (left_duty > 1.0f ? 1.0f : left_duty);
 
         wcvesc_encode_duty(&frame, RIGHT_MOTOR_ID_1, right_duty);
-        wccan_write_bus(can_socket, frame);
+        wccan_ctx_write_bus(&can_ctx, &frame);
         wcvesc_encode_duty(&frame, LEFT_MOTOR_ID_1, left_duty);
-        wccan_write_bus(can_socket, frame);
+        wccan_ctx_write_bus(&can_ctx, &frame);
 
         printf("%f\n%f\n\n", left_duty, right_duty);
     }
 
-    wcinput_ctx_free(&ctx);
+    wcinput_ctx_free(&input_ctx);
+    wccan_ctx_free(&can_ctx);
     free_filters(filters);
     return 0;
 }

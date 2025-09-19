@@ -15,7 +15,7 @@ int main(){
 
     // Open the GPIO chip device
     if (wcgpio_chip_init(&chip, 0) < 0){
-        printf("Error: Failed to initialize GPIO-chip 0");
+        printf("Error: Failed to initialize GPIO chip 0");
         return -1;
     }
 

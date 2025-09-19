@@ -7,16 +7,19 @@ int main(){
     wcpwm_pin_t pin;
 
     if (wcpwm_chip_init(&chip, 0) < 0){
-        printf("Error: Failed to initialize PWM-chip 0\n");
+        printf("Error: Failed to initialize PWM chip 0\n");
         return -1;
     }
 
     if (wcpwm_pin_init(&pin, &chip, 0) < 0){
-        printf("Error: Failed to initialize PWM-pin 0 on PWM-chip 0\n");
+        printf("Error: Failed to initialize PWM pin 0 on PWM chip 0\n");
+        wcpwm_chip_free(&chip);
         return -1;
     }
     if (wcpwm_pin_enable(&pin) < 0){
-        printf("Error: Failed to enable PWM-pin 0 on PWM-chip 0\n");
+        printf("Error: Failed to enable PWM pin 0 on PWM chip 0\n");
+        wcpwm_chip_free(&chip);
+        wcpwm_pin_free(&pin);
         return -1;
     }
 
