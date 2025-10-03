@@ -1,4 +1,5 @@
 #include "wc/io/input.h"
+#include "wc/containers/que.h"
 #include "wc/containers/vec.h"
 
 #include <libevdev-1.0/libevdev/libevdev.h>
@@ -205,7 +206,7 @@ int wcinput_ctx_wait_device(wcinput_ctx_t* ctx, const wcvec_t* filters){
     while (true){
         if (select(monitor_fd + 1, &fds, nullptr, nullptr, nullptr) < 0) break;
 
-        if (FD_ISSET(monitor_fd, &fds)) {
+        if (FD_ISSET(monitor_fd, &fds)){
             device = udev_monitor_receive_device(monitor);
             if (device) {
                 const char *action = udev_device_get_action(device);
@@ -290,19 +291,15 @@ int wcinput_ctx_poll(wcinput_ctx_t* ctx, wcinput_event_t* out_ev){
             wcque_push_back_rot(&ctx->events, &tmp);
         } while (rc == LIBEVDEV_READ_STATUS_SUCCESS || rc == LIBEVDEV_READ_STATUS_SYNC);
     }
-    if (!wcque_size(&ctx->events)) return -1;
-    if (out_ev){
-        *out_ev = *(wcinput_event_t*)wcque_back(&ctx->events);
-        wcque_pop_front(&ctx->events);
-    }
+    if (out_ev) return wcinput_ctx_pop_event(ctx, out_ev);
     return 0;
 }
 
 int wcinput_ctx_pop_event(wcinput_ctx_t* ctx, wcinput_event_t* out_ev){
-    if (!wcque_size(&ctx->events)) return -1;
+    if (!wcque_size(&ctx->events)) return 0;
     if (out_ev) *out_ev = *(wcinput_event_t*)wcque_back(&ctx->events);
     wcque_pop_front(&ctx->events);
-    return 0; 
+    return 1; 
 }
 
 //------------------------------------------------------------------------

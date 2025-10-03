@@ -1,6 +1,6 @@
 #include "wc/containers/vec.h"
+#include "wc/esc/vesc.h"
 #include "wc/io/input.h"
-#include "wc/io/vesc.h"
 #include "wc/io/can.h"
 
 #include <bits/time.h>
@@ -83,12 +83,8 @@ int main(){
         printf("%s\n", "Error: Failed to create input context");
         return -1;
     }
-    if (wccan_ctx_init(&can_ctx) < 0){
+    if (wccan_ctx_init(&can_ctx, "can0", 0) < 0){
         printf("Error: Failed to create CAN socket\n");
-        return -1;
-    }
-    if (wccan_ctx_bind(&can_ctx, "can0", NULL) < 0){
-        printf("Error: Failed to bind CAN socket\n");
         return -1;
     }
 
@@ -147,9 +143,9 @@ int main(){
         right_duty = right_duty < -1.0f ? -1.0f : (right_duty > 1.0f ? 1.0f : right_duty);
         left_duty = left_duty < -1.0f ? -1.0f : (left_duty > 1.0f ? 1.0f : left_duty);
 
-        wcvesc_encode_duty(&frame, RIGHT_MOTOR_ID_1, right_duty);
+        wcvesc_encode_set_duty(&frame, RIGHT_MOTOR_ID_1, right_duty);
         wccan_ctx_write_bus(&can_ctx, &frame);
-        wcvesc_encode_duty(&frame, LEFT_MOTOR_ID_1, left_duty);
+        wcvesc_encode_set_duty(&frame, LEFT_MOTOR_ID_1, left_duty);
         wccan_ctx_write_bus(&can_ctx, &frame);
 
         printf("%f\n%f\n\n", left_duty, right_duty);
