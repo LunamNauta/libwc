@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define WCPWM_CHIP_ROOT_PATH "../pwm/pwmchip" //"/sys/class/pwm/pwmchip"
+#define WCPWM_CHIP_ROOT_PATH "/sys/class/pwm/pwmchip"
 
 typedef struct wcpwm_pin{
     size_t id;
