@@ -1,20 +1,16 @@
 #ifndef WC_GPIO_HEADER
 #define WC_GPIO_HEADER
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <linux/gpio.h>
-
-//------------------------------------------------------------------------
 
 #define WCGPIO_PIN_HIGH_MASK(a, ...) (_wcgpio_pin_mask(a, ##__VA_ARGS__, ((size_t)(-1))))
 #define WCGPIO_PIN_MASK(a, ...) (_wcgpio_pin_mask(a, ##__VA_ARGS__, ((size_t)(-1))))
 #define WCGPIO_PIN_LOW_MASK(...) ((size_t)(0))
 
 size_t _wcgpio_pin_mask(size_t first, ...);
-size_t _wcgpio_integer_strlen(size_t num);
-
-//------------------------------------------------------------------------
 
 typedef enum wcgpio_line_attr{
     WCGPIO_LINE_ATTR_OUTPUT_VALUES = GPIO_V2_LINE_ATTR_ID_OUTPUT_VALUES,
@@ -57,7 +53,7 @@ typedef enum wcgpio_line_flag_drv{
 typedef enum wcgpio_line_flag_clk{
     WCGPIO_LINE_FLAG_CLOCK_MONOTONIC = 0,
     WCGPIO_LINE_FLAG_CLOCK_REALTIME = GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME,
-    WCGPIO_LINE_FLAG_CLOCK_HTE = GPIO_V2_LINE_FLAG_EVENT_CLOCK_HTE
+    //WCGPIO_LINE_FLAG_CLOCK_HTE = GPIO_V2_LINE_FLAG_EVENT_CLOCK_HTE
 } wcgpio_line_flag_clk_t;
 
 #define WCGPIO_LINE_FLAG_ACTIVE_LOW GPIO_V2_LINE_FLAG_ACTIVE_LOW

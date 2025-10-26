@@ -1,10 +1,11 @@
-#include "wc/io/gpio.h"
+#include "wc/hardware/gpio.h"
 
 #include <linux/gpio.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 #include <math.h>
 
 #include <unistd.h>
@@ -107,7 +108,7 @@ wcgpio_line_flag_drv_t wcgpio_line_info_get_drive(const wcgpio_line_info_t* info
     return info->info.flags & (WCGPIO_LINE_FLAG_OPEN_DRAIN | WCGPIO_LINE_FLAG_OPEN_SOURCE);
 }
 wcgpio_line_flag_clk_t wcgpio_line_info_get_clock(const wcgpio_line_info_t* info){
-    return info->info.flags & (WCGPIO_LINE_FLAG_CLOCK_REALTIME | WCGPIO_LINE_FLAG_CLOCK_HTE);
+    return info->info.flags & (WCGPIO_LINE_FLAG_CLOCK_REALTIME);
 }
 bool wcgpio_line_info_get_used(const wcgpio_line_info_t* info){
     return info->info.flags & WCGPIO_LINE_FLAG_USED;
@@ -156,7 +157,7 @@ void wcgpio_line_cfg_set_drive(wcgpio_line_cfg_t* cfg, wcgpio_line_flag_drv_t dr
     cfg->cfg.flags |= drv;
 }
 void wcgpio_line_cfg_set_clock(wcgpio_line_cfg_t* cfg, wcgpio_line_flag_clk_t clk){
-    cfg->cfg.flags ^= (cfg->cfg.flags & (WCGPIO_LINE_FLAG_CLOCK_REALTIME | WCGPIO_LINE_FLAG_CLOCK_HTE));
+    cfg->cfg.flags ^= (cfg->cfg.flags & (WCGPIO_LINE_FLAG_CLOCK_REALTIME));
     cfg->cfg.flags |= clk;
 }
 void wcgpio_line_cfg_set_used(wcgpio_line_cfg_t* cfg, bool used){
@@ -183,7 +184,10 @@ void wcgpio_line_req_zero(wcgpio_line_req_t* req){
     memset(req, 0, sizeof(wcgpio_line_req_t));
 }
 int wcgpio_line_req_init(wcgpio_line_req_t* req, const wcgpio_chip_t* chip){
-    if (ioctl(chip->fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &req->req) < 0) return -1;
+    if (ioctl(chip->fd, GPIO_V2_GET_LINE_IOCTL, &req->req) < 0){
+	    printf("test: %i\n", errno);
+	    return -1;
+    }
     return 0;
 }
 void wcgpio_line_req_free(const wcgpio_line_req_t* req){

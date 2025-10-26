@@ -1,7 +1,7 @@
 #ifndef WC_VESC_HEADER
 #define WC_VESC_HEADER
 
-#include "wc/io/can.h"
+#include "wc/hardware/can.h"
 
 #include <stdint.h>
 
@@ -14,46 +14,40 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-// Reversed engineered from the VESC firmware: https://github.com/vedderb/bldc
+// Reverse engineered from: https://github.com/vedderb/bldc/blob/master/comm/comm_can.c
 //------------------------------------------------------------------------------------
 
-// There are other commands, but these seem like the most useful for basic functionality
-// Firmware implementation: https://github.com/vedderb/bldc/blob/master/datatypes.h#L1134
 typedef enum wcvesc_packet_id{
-    WCVESC_SET_DUTY                     = 0x00,
-    WCVESC_SET_CURRENT                  = 0x01,
-    WCVESC_SET_CURRENT_BRAKE            = 0x02,
-    WCVESC_SET_RPM                      = 0x03,
-    WCVESC_SET_POS                      = 0x04,
-    WCVESC_FILL_RX_BUFFER               = 0x05,
-    WCVESC_FILL_RX_BUFFER_LONG          = 0x06,
-    WCVESC_PROCESS_RX_BUFFER            = 0x07,
-    WCVESC_PROCESS_SHORT_BUFFER         = 0x08,
-    WCVESC_STATUS_1                     = 0x09,
-    WCVESC_SET_CURRENT_REL              = 0x0a,
-    WCVESC_SET_CURRENT_BRAKE_REL        = 0x0b,
-    WCVESC_SET_CURRENT_HANDBRAKE        = 0x0c,
-    WCVESC_SET_CURRENT_HANDBRAKE_REL    = 0x0d,
-    WCVESC_STATUS_2                     = 0x0e,
-    WCVESC_STATUS_3                     = 0x0f,
-    WCVESC_STATUS_4                     = 0x10,
-    WCVESC_PING                         = 0x11,
-    WCVESC_PONG                         = 0x12,
-    WCVESC_DETECT_APPLY_ALL_FOC         = 0x13,
-    WCVESC_DETECT_APPLY_ALL_FOC_RES     = 0x14,
-    WCVESC_CONF_CURRENT_LIMITS          = 0x15,
-    WCVESC_CONF_STORE_CURRENT_LIMITS    = 0x16,
-    WCVESC_CONF_CURRENT_LIMITS_IN       = 0x17,
-    WCVESC_CONF_STORE_CURRENT_LIMITS_IN = 0x18,
-    WCVESC_CONF_FOC_ERPMS               = 0x19,
-    WCVESC_CONF_STORE_FOC_ERPMS         = 0x1a,
-    WCVESC_STATUS_5                     = 0x1b,
-    WCVESC_SHUTDOWN                     = 0x1f,
-    WCVESC_NOTIFY_BOOT                  = 0x39,
-    WCVESC_STATUS_6                     = 0x3a
+    WCVESC_SET_DUTY = 0,
+    WCVESC_SET_CURRENT,
+    WCVESC_SET_CURRENT_BRAKE,
+    WCVESC_SET_RPM,
+    WCVESC_SET_POS,
+    WCVESC_FILL_RX_BUFFER,
+    WCVESC_FILL_RX_BUFFER_LONG,
+    WCVESC_PROCESS_RX_BUFFER,
+    WCVESC_PROCESS_SHORT_BUFFER,
+    WCVESC_STATUS_1,
+    WCVESC_SET_CURRENT_REL,
+    WCVESC_SET_CURRENT_BRAKE_REL,
+    WCVESC_SET_CURRENT_HANDBRAKE,
+    WCVESC_SET_CURRENT_HANDBRAKE_REL,
+    WCVESC_STATUS_2,
+    WCVESC_STATUS_3,
+    WCVESC_STATUS_4,
+    WCVESC_PING,
+    WCVESC_PONG,
+    WCVESC_DETECT_APPLY_ALL_FOC,
+    WCVESC_DETECT_APPLY_ALL_FOC_RES,
+    WCVESC_CONF_CURRENT_LIMITS,
+    WCVESC_CONF_STORE_CURRENT_LIMITS,
+    WCVESC_CONF_CURRENT_LIMITS_IN,
+    WCVESC_CONF_STORE_CURRENT_LIMITS_IN,
+    WCVESC_CONF_FOC_ERPMS,
+    WCVESC_CONF_STORE_FOC_ERPMS,
+    WCVESC_STATUS_5,
+    WCVESC_STATUS_6
 } wcvesc_packet_id_t;
-
-//------------------------------------------------------------------------------------
 
 typedef struct wcvesc_status1{
     float erpm;
@@ -102,27 +96,34 @@ typedef struct wcvesc_status{
     };
 } wcvesc_status_t;
 
-//------------------------------------------------------------------------------------
-
 canid_t wcvesc_encode_id(wcvesc_packet_id_t packet_id, uint8_t unit_id);
 void wcvesc_decode_id(canid_t id, wcvesc_packet_id_t* out_packet_id, uint8_t* out_unit_id);
 
-bool wcvesc_has_packet_id(canid_t id, wcvesc_packet_id_t packet_id);
-bool wcvesc_has_unit_id(canid_t id, uint8_t unit_id);
+void wcvesc_push_u16(uint8_t* data, uint16_t uval);
+void wcvesc_push_u32(uint8_t* data, uint32_t uval);
+void wcvesc_push_i16(uint8_t* data, int16_t val);
+void wcvesc_push_i32(uint8_t* data, int32_t val);
+void wcvesc_push_f16(uint8_t* data, float val, float scale);
+void wcvesc_push_f32(uint8_t* data, float val, float scale);
 
-//------------------------------------------------------------------------------------
+uint16_t wcvesc_pop_u16(const uint8_t* data);
+uint32_t wcvesc_pop_u32(const uint8_t* data);
+int16_t wcvesc_pop_i16(const uint8_t* data);
+int32_t wcvesc_pop_i32(const uint8_t* data);
+float wcvesc_pop_f16(const uint8_t* data, float scale);
+float wcvesc_pop_f32(const uint8_t* data, float scale);
 
 void wcvesc_encode_conf_store_current_limits_in(wccan_frame_t* frame, uint8_t unit_id, float min_curr, float max_curr);
 void wcvesc_encode_conf_store_current_limits(wccan_frame_t* frame, uint8_t unit_id, float min_curr, float max_curr);
-void wcvesc_encode_set_current_brake_rel(wccan_frame_t* frame, uint8_t unit_id, float current);
-void wcvesc_encode_set_current_brake(wccan_frame_t* frame, uint8_t unit_id, float current);
-void wcvesc_encode_set_current_rel(wccan_frame_t* frame, uint8_t unit_id, float current);
-void wcvesc_encode_set_current(wccan_frame_t* frame, uint8_t unit_id, float current);
-void wcvesc_encode_set_duty(wccan_frame_t* frame, uint8_t unit_id, float duty);
-void wcvesc_encode_set_rpm(wccan_frame_t* frame, uint8_t unit_id, float rpm);
-void wcvesc_encode_set_pos(wccan_frame_t* frame, uint8_t unit_id, float pos);
-
-//------------------------------------------------------------------------------------
+void wcvesc_encode_conf_current_limits_in(wccan_frame_t* frame, uint8_t unit_id, float min_curr, float max_curr);
+void wcvesc_encode_conf_current_limits(wccan_frame_t* frame, uint8_t unit_id, float min_curr, float max_curr);
+void wcvesc_encode_current_brake_rel(wccan_frame_t* frame, uint8_t unit_id, float current);
+void wcvesc_encode_current_brake(wccan_frame_t* frame, uint8_t unit_id, float current);
+void wcvesc_encode_current_rel(wccan_frame_t* frame, uint8_t unit_id, float current);
+void wcvesc_encode_current(wccan_frame_t* frame, uint8_t unit_id, float current);
+void wcvesc_encode_erpm(wccan_frame_t* frame, uint8_t unit_id, float erpm);
+void wcvesc_encode_duty(wccan_frame_t* frame, uint8_t unit_id, float duty);
+void wcvesc_encode_pos(wccan_frame_t* frame, uint8_t unit_id, float pos);
 
 wcvesc_status1_t wcvesc_decode_status1(const wccan_frame_t* frame);
 wcvesc_status2_t wcvesc_decode_status2(const wccan_frame_t* frame);
@@ -130,7 +131,5 @@ wcvesc_status3_t wcvesc_decode_status3(const wccan_frame_t* frame);
 wcvesc_status4_t wcvesc_decode_status4(const wccan_frame_t* frame);
 wcvesc_status5_t wcvesc_decode_status5(const wccan_frame_t* frame);
 wcvesc_status6_t wcvesc_decode_status6(const wccan_frame_t* frame);
-
-//-------------------------------------------------------------------------------------
 
 #endif
